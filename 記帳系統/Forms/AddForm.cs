@@ -151,6 +151,8 @@ namespace 記帳系統.Forms
             //圖檔上傳要另存並拿到圖檔路徑，不要拿原始路徑(設定好路徑再另存新黨)
             //image 
               Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", $"{DateBox.Value.ToString("yyyy-MM-dd")}", $"{Guid.NewGuid()}.png"),
+              Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", $"{DateBox.Value.ToString("yyyy-MM-dd")}", $"{Guid.NewGuid()}.png"),
+              Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", $"{DateBox.Value.ToString("yyyy-MM-dd")}", $"{Guid.NewGuid()}.png"),
               Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", $"{DateBox.Value.ToString("yyyy-MM-dd")}", $"{Guid.NewGuid()}.png")
             );
             List<AccountingModel> transactions = new List<AccountingModel> { transaction };
@@ -161,15 +163,48 @@ namespace 記帳系統.Forms
             string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", folderName);
             if( !Directory.Exists( folderPath )) { Directory.CreateDirectory( folderPath ); }
             CSVHelper.CSV.WriteCSV(csvPath, transactions);
-            //EncoderParameters myEncoderParameters = new EncoderParameters(1);
-            //ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
-            //System.Drawing.Imaging.Encoder myEncoder =
-            //System.Drawing.Imaging.Encoder.Quality;
-            //EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, 50L);//品質0到100分的中間值50分
-            //myEncoderParameters.Param[0] = myEncoderParameter;
+
+        
             pictureBox1.Image.Save(transaction.csvImagePath1);
             pictureBox2.Image.Save(transaction.csvImagePath2);
+
+            SaveCompressedImage(pictureBox1.Image, transaction.compressImagePath1, 50L);
+            SaveCompressedImage(pictureBox2.Image, transaction.compressImagePath2, 50L);
+
             MessageBox.Show("已經成功上傳");
+        }
+
+        private void SaveCompressedImage(Image image, string outputPath, long quality)
+        {
+            // Get a JPEG codec
+            ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
+
+            // Create an Encoder object based on the Quality parameter category
+            System.Drawing.Imaging.Encoder myEncoder = System.Drawing.Imaging.Encoder.Quality;
+
+            // Create an EncoderParameters object
+            EncoderParameters myEncoderParameters = new EncoderParameters(1);
+
+            // Save the image as a JPEG file with quality level set by 'quality' parameter
+            EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, quality);
+            myEncoderParameters.Param[0] = myEncoderParameter;
+
+            // Save the image to the specified path
+            image.Save(outputPath, jpgEncoder, myEncoderParameters);
+        }
+
+        private ImageCodecInfo GetEncoder(ImageFormat format)
+        {
+            // Return the codec with the corresponding format
+            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+            foreach (ImageCodecInfo codec in codecs)
+            {
+                if (codec.FormatID == format.Guid)
+                {
+                    return codec;
+                }
+            }
+            return null;
         }
 
 
@@ -193,8 +228,6 @@ namespace 記帳系統.Forms
             }
             
         }
-
-     
     }
 }
 //Guid.NewGuid() 是 C# 中的一個方法，用來生成一個全新的全局唯一識別符（GUID）。

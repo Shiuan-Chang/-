@@ -21,7 +21,9 @@ namespace 記帳系統.Forms
         public NoteForm()
         {
             InitializeComponent();
+            dataGridView1.CellClick += imageClick;
         }
+
 
         private void NoteForm_Load(object sender, EventArgs e)
         {
@@ -49,7 +51,6 @@ namespace 記帳系統.Forms
                 }
             }
 
-
             //為了做到記憶體管理
             dataGridView1.DataSource = null;
 
@@ -64,8 +65,8 @@ namespace 記帳系統.Forms
             //List<AccountingModel> readList = CSVHelper.CSV.ReadCSV<AccountingModel>(csvReadPath, true);
             dataGridView1.DataSource = Lists;
            
-            dataGridView1.Columns["csvImagePath1"].Visible = false;
-            dataGridView1.Columns["csvImagePath2"].Visible = false;
+            dataGridView1.Columns["compressImagePath1"].Visible = false;
+            dataGridView1.Columns["compressImagePath2"].Visible = false;
             //DataGridViewImageColumn
 
             dataGridView1.Columns[0].HeaderText = "日期";
@@ -86,17 +87,62 @@ namespace 記帳系統.Forms
             dataGridView1.Columns.Insert(8, iconColumn1);
             dataGridView1.Columns.Insert(9, iconColumn2);
 
+            string csvPath1 = "";
+
+            if (dataGridView1.Rows.Count > 0)
+            {
+                // Print or store the first row's csvImagePath1 for debugging or other uses
+                csvPath1 = Lists[0].compressImagePath1;
+            }
+
             for (int row = 0; row < dataGridView1.Rows.Count; row++)
             {
                 // 先去讀csvImagePath1,2的資料
-                Bitmap bmp1 = new Bitmap(Lists[row].csvImagePath1);
-                Bitmap bmp2 = new Bitmap(Lists[row].csvImagePath2);
+                Bitmap bmp1 = new Bitmap(Lists[row].compressImagePath1);
+                Bitmap bmp2 = new Bitmap(Lists[row].compressImagePath2);
                 ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[8]).Value = bmp1;
                 ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[9]).Value = bmp2;
                 // 存四張圖，2張原圖壓縮(50*50封面) 100k以下，另外兩張點進去讓使用者看到原本上傳內容 一張圖片大概 300-500kb
             
             }
         }
+
+        private void imageClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex == 8 || e.ColumnIndex == 9)
+            {
+                // 獲得目前點擊 AccountingModel 對象
+                AccountingModel selectedImage = (AccountingModel)dataGridView1.Rows[e.RowIndex].DataBoundItem;//DataBoundIte綁定e
+
+                // 根據點擊對象顯示圖片
+                string imagePath = (e.ColumnIndex == 8) ? selectedImage.csvImagePath1 : selectedImage.csvImagePath2;
+
+                if (File.Exists(imagePath))
+                {
+                    // 顯示圖片
+                    Form imageForm = new Form();
+                    imageForm.StartPosition = FormStartPosition.CenterScreen;
+                    imageForm.Size = new Size(800, 600);
+
+                    PictureBox pictureBox = new PictureBox();
+                    pictureBox.Dock = DockStyle.Fill;
+                    pictureBox.Image = new Bitmap(imagePath);
+                    pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+
+                    imageForm.Controls.Add(pictureBox);
+                    imageForm.ShowDialog();
+                }
+                else
+                {
+                    MessageBox.Show("不存在圖片路徑", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+        }
+
+
+
+
+
 
         private void navBar1_Load(object sender, EventArgs e)
         {

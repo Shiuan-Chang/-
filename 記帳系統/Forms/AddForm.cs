@@ -164,33 +164,38 @@ namespace 記帳系統.Forms
             if( !Directory.Exists( folderPath )) { Directory.CreateDirectory( folderPath ); }
             CSVHelper.CSV.WriteCSV(csvPath, transactions);
 
-        
-            pictureBox1.Image.Save(transaction.csvImagePath1);
-            pictureBox2.Image.Save(transaction.csvImagePath2);
 
             SaveCompressedImage(pictureBox1.Image, transaction.compressImagePath1, 50L);
             SaveCompressedImage(pictureBox2.Image, transaction.compressImagePath2, 50L);
+
+           
+            using (Bitmap image1 = new Bitmap(Image.FromFile(transaction.compressImagePath1), new Size(50, 50)))
+            { image1.Save(transaction.csvImagePath1); }
+
+            using (Bitmap image2 = new Bitmap(Image.FromFile(transaction.compressImagePath2), new Size(50, 50)))
+            { image2.Save(transaction.csvImagePath2); }
 
             MessageBox.Show("已經成功上傳");
         }
 
         private void SaveCompressedImage(Image image, string outputPath, long quality)//long quality 壓縮品質，0(最低品質，最高壓縮)-100(最高品質，最低壓縮)
         {
-            // Get a JPEG codec
-            ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);//根據傳入的圖片格式（在這個例子中是 JPEG），返回對應的編碼器。
 
-            // Create an Encoder object based on the Quality parameter category
-            System.Drawing.Imaging.Encoder myEncoder = System.Drawing.Imaging.Encoder.Quality;//對應於品質調整的編碼器參數
+                // Get a JPEG codec
+                ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);//根據傳入的圖片格式（在這個例子中是 JPEG），返回對應的編碼器。
 
-            // Create an EncoderParameters object
-            EncoderParameters myEncoderParameters = new EncoderParameters(1);
+                // Create an Encoder object based on the Quality parameter category
+                System.Drawing.Imaging.Encoder myEncoder = System.Drawing.Imaging.Encoder.Quality;//對應於品質調整的編碼器參數
 
-            // Save the image as a JPEG file with quality level set by 'quality' parameter
-            EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, quality);
-            myEncoderParameters.Param[0] = myEncoderParameter;
+                // Create an EncoderParameters object
+                EncoderParameters myEncoderParameters = new EncoderParameters(1);
 
-            // Save the image to the specified path
-            image.Save(outputPath, jpgEncoder, myEncoderParameters);//.Save()進行格式轉換，所以png依然可以轉換後保留成為png，而非jpeg
+                // Save the image as a JPEG file with quality level set by 'quality' parameter
+                EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, quality);
+                myEncoderParameters.Param[0] = myEncoderParameter;
+
+                // Save the image to the specified path
+                image.Save(outputPath, jpgEncoder, myEncoderParameters);//.Save()進行格式轉換，所以png依然可以轉換後保留成為png，而非jpeg
         }
 
         private ImageCodecInfo GetEncoder(ImageFormat format)

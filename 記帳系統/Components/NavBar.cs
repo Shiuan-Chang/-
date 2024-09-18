@@ -43,6 +43,9 @@ namespace 記帳系統.Components
 
             foreach (var type in formTypes)
             {
+                if (type.Name == "ImageForm")
+                    continue;
+
                 count++;
 
                 var titleAttribute = type.GetCustomAttribute<DisplayNameAttribute>();

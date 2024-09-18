@@ -98,51 +98,34 @@ namespace 記帳系統.Forms
             for (int row = 0; row < dataGridView1.Rows.Count; row++)
             {
                 // 先去讀csvImagePath1,2的資料
-                Bitmap bmp1 = new Bitmap(Lists[row].compressImagePath1);
-                Bitmap bmp2 = new Bitmap(Lists[row].compressImagePath2);
+                Bitmap bmp1 = new Bitmap(Lists[row].csvImagePath1);
+                Bitmap bmp2 = new Bitmap(Lists[row].csvImagePath2);
                 ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[8]).Value = bmp1;
                 ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[9]).Value = bmp2;
-                // 存四張圖，2張原圖壓縮(50*50封面) 100k以下，另外兩張點進去讓使用者看到原本上傳內容 一張圖片大概 300-500kb
-            
+                // 存四張圖，2張原圖縮小(50*50封面)並略調畫質，另外兩張點進去看到的是壓縮檔圖，約300-500kb
+
             }
         }
 
+        // HW915:用form作控管，在每一次生命週期結束(關閉原圖視窗後)，應該要跟著回收記憶體(回到原來的值)。另外，addform也要把記憶體回收，
+        // 可能會有回收不乾淨的行為(不能只用gc回收)，可能有其他地方造成gc處理不乾淨→一行行執行看哪一行程式碼造成記憶體增加→gc不知道要回收哪個
         private void imageClick(object sender, DataGridViewCellEventArgs e)
         {
             if (e.ColumnIndex == 8 || e.ColumnIndex == 9)
             {
-                // 獲得目前點擊 AccountingModel 對象
-                AccountingModel selectedImage = (AccountingModel)dataGridView1.Rows[e.RowIndex].DataBoundItem;//DataBoundIte綁定e
+                // Obtain the currently clicked AccountingModel object
+                AccountingModel selectedImage = (AccountingModel)dataGridView1.Rows[e.RowIndex].DataBoundItem;
 
-                // 根據點擊對象顯示圖片
-                string imagePath = (e.ColumnIndex == 8) ? selectedImage.csvImagePath1 : selectedImage.csvImagePath2;
+                // Determine the correct image path based on the clicked column
+                string imagePath = (e.ColumnIndex == 8) ? selectedImage.compressImagePath1 : selectedImage.compressImagePath2;
 
-                if (File.Exists(imagePath))
-                {
-                    // 顯示圖片
-                    Form imageForm = new Form();
-                    imageForm.StartPosition = FormStartPosition.CenterScreen;
-                    imageForm.Size = new Size(800, 600);
+                // Display the image in a new ImageViewerForm
+                ImageForm viewer = new ImageForm(imagePath);
 
-                    PictureBox pictureBox = new PictureBox();
-                    pictureBox.Dock = DockStyle.Fill;
-                    pictureBox.Image = new Bitmap(imagePath);
-                    pictureBox.SizeMode = PictureBoxSizeMode.Zoom;
+                viewer.ShowDialog();
 
-                    imageForm.Controls.Add(pictureBox);
-                    imageForm.ShowDialog();
-                }
-                else
-                {
-                    MessageBox.Show("不存在圖片路徑", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
             }
         }
-
-
-
-
-
 
         private void navBar1_Load(object sender, EventArgs e)
         {

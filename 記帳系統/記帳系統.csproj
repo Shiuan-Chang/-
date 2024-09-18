@@ -74,6 +74,12 @@
     <Compile Include="Forms\AnalysisForm.Designer.cs">
       <DependentUpon>AnalysisForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\ImageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\ImageForm.Designer.cs">
+      <DependentUpon>ImageForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\NoteForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -103,6 +109,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\AnalysisForm.resx">
       <DependentUpon>AnalysisForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\ImageForm.resx">
+      <DependentUpon>ImageForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\NoteForm.resx">
       <DependentUpon>NoteForm.cs</DependentUpon>

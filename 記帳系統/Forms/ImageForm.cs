@@ -14,7 +14,6 @@ namespace 記帳系統.Forms
     public partial class ImageForm : Form
     {
         private PictureBox pictureBox;
-        private Bitmap image;
         public ImageForm(string imagePath)
         {
             InitializeComponent();
@@ -35,8 +34,10 @@ namespace 記帳系統.Forms
         {
             if (System.IO.File.Exists(imagePath))
             {
-                this.image = new Bitmap(imagePath);
-                this.pictureBox.Image = this.image;
+                using (Bitmap image = new Bitmap(imagePath))
+                {
+                    this.pictureBox.Image = new Bitmap(image); // Assign a new Bitmap to PictureBox to avoid using disposed object
+                }
             }
             else
             {
@@ -45,16 +46,14 @@ namespace 記帳系統.Forms
         }
 
         //覆寫基類（Form）的 OnFormClosed 方法，以便實現特定的清理或其他終止操作。
-        protected override void OnFormClosed(FormClosedEventArgs e) // onformcolsed是處理視窗關閉時觸發的事件
+        protected override void OnFormClosed(FormClosedEventArgs e) // onformcolsed是處理視窗關閉時觸發的事件，是formclose的擴展
         {
-            //將 PictureBox 的圖片返回null
-            pictureBox.Image = null;
+            if (this.pictureBox.Image != null)
+            {
+                this.pictureBox.Image.Dispose(); 
+                this.pictureBox.Image = null;
+            }
 
-            //釋放圖檔
-            image?.Dispose();
-            image = null;
-
-            //進行回收
             GC.Collect();
             base.OnFormClosed(e);
         }

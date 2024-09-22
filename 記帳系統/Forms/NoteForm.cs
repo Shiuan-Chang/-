@@ -22,6 +22,9 @@ namespace 記帳系統.Forms
         {
             InitializeComponent();
             dataGridView1.CellClick += imageClick;
+            startPicker.Value = DateTime.Today.AddDays(-30);
+            // timer要隔一段時間後，才去做button要做的事
+            // button 永遠去呼叫debounce做的事情，因此，會有一個debounce方法，debouce會更改及清空timer的時間(也就是說timer一定會在debounce中)
         }
 
 
@@ -30,7 +33,23 @@ namespace 記帳系統.Forms
 
         }
 
+        //一開始把計時器歸零，然後再做延遲計算
         private void button1_Click(object sender, EventArgs e)
+        {
+            Timer debounceTimer = new Timer();
+
+            debounceTimer.Tick += (s, args) =>
+            {
+                debounceTimer.Stop();//停止計時器防止多次觸發
+                debounceTimer.Dispose(); // 釋放計時器資源
+                LoadData();
+            };
+
+            debounceTimer.Interval = 1000; // 延遲時間
+            debounceTimer.Start();
+        }
+
+        private void LoadData()
         {
             // 把datasource指向null
             //HW825:可以拿到起訖之間的資料，注意檢查之間日期是否有資料夾，沒有就跳過，否則會報錯
@@ -41,10 +60,10 @@ namespace 記帳系統.Forms
             int timePeriod = dateSpan.Days;
             //找到路徑中日期存在相符的資料夾
             string csvSearchPath = @"C:\Users\icewi\OneDrive\桌面\testCSV";
-            for (int i = 0; i<= timePeriod; i++) 
-            { 
+            for (int i = 0; i <= timePeriod; i++)
+            {
                 string folderPath = Path.Combine(csvSearchPath, startDate.AddDays(i).ToString("yyyy-MM-dd"), $"data.csv");
-                if (File.Exists(folderPath)) 
+                if (File.Exists(folderPath))
                 {
                     List<AccountingModel> periodList = CSVHelper.CSV.ReadCSV<AccountingModel>(folderPath, true);
                     Lists.AddRange(periodList);
@@ -64,9 +83,11 @@ namespace 記帳系統.Forms
             //string csvReadPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", "csvDataPath", $"data.csv");
             //List<AccountingModel> readList = CSVHelper.CSV.ReadCSV<AccountingModel>(csvReadPath, true);
             dataGridView1.DataSource = Lists;
-           
+
             dataGridView1.Columns["compressImagePath1"].Visible = false;
             dataGridView1.Columns["compressImagePath2"].Visible = false;
+            dataGridView1.Columns["csvImagePath1"].Visible = false;
+            dataGridView1.Columns["csvImagePath2"].Visible = false;
             //DataGridViewImageColumn
 
             dataGridView1.Columns[0].HeaderText = "日期";
@@ -105,7 +126,9 @@ namespace 記帳系統.Forms
                 // 存四張圖，2張原圖縮小(50*50封面)並略調畫質，另外兩張點進去看到的是壓縮檔圖，約300-500kb
 
             }
+
         }
+
 
         // HW915:用form作控管，在每一次生命週期結束(關閉原圖視窗後)，應該要跟著回收記憶體(回到原來的值)。另外，addform也要把記憶體回收，
         // 可能會有回收不乾淨的行為(不能只用gc回收)，可能有其他地方造成gc處理不乾淨→一行行執行看哪一行程式碼造成記憶體增加→gc不知道要回收哪個

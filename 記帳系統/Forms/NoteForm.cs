@@ -7,9 +7,11 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using 記帳系統.Models;
+
 
 namespace 記帳系統.Forms
 {
@@ -33,100 +35,120 @@ namespace 記帳系統.Forms
 
         }
 
+        //設定全局只有一個定時器存在
+        private static System.Threading.Timer debounceTimer;
+        private static object timerLock = new object();
+
+
         //一開始把計時器歸零，然後再做延遲計算
         private void button1_Click(object sender, EventArgs e)
         {
-            Timer debounceTimer = new Timer();
-
-            debounceTimer.Tick += (s, args) =>
+            lock (timerLock)
             {
-                debounceTimer.Stop();//停止計時器防止多次觸發
-                debounceTimer.Dispose(); // 釋放計時器資源
-                LoadData();
-            };
+                // 如果計時器已經存在，則先停止並清除
+                debounceTimer?.Dispose();
 
-            debounceTimer.Interval = 1000; // 延遲時間
-            debounceTimer.Start();
+                // 創建一個新的計時器，設置 1000ms 的延遲執行
+                debounceTimer = new System.Threading.Timer(LoadData, null, 1000, Timeout.Infinite);
+            }
+            //不要這樣用，這樣會有很多個timer
+            //Timer debounceTimer = new Timer();
+
+            //debounceTimer.Tick += (s, args) =>
+            //{
+            //    debounceTimer.Stop();//停止計時器防止多次觸發
+            //    debounceTimer.Dispose(); // 釋放計時器資源
+            //    LoadData();
+            //};
+
+            //debounceTimer.Interval = 1000; // 延遲時間
+            //debounceTimer.Start();
         }
 
-        private void LoadData()
+        private void LoadData(object state)
         {
+            var form = (NoteForm)Application.OpenForms["NoteForm"];
             // 把datasource指向null
             //HW825:可以拿到起訖之間的資料，注意檢查之間日期是否有資料夾，沒有就跳過，否則會報錯
             // 拿到piker 日期相減的值(span)，檢查該日期期間是否存在資料夾逐一做檢查
-            List<AccountingModel> Lists = new List<AccountingModel>();
-            DateTime startDate = startPicker.Value;
-            TimeSpan dateSpan = endPicker.Value - startPicker.Value;
-            int timePeriod = dateSpan.Days;
-            //找到路徑中日期存在相符的資料夾
-            string csvSearchPath = @"C:\Users\icewi\OneDrive\桌面\testCSV";
-            for (int i = 0; i <= timePeriod; i++)
+            if (form != null)
             {
-                string folderPath = Path.Combine(csvSearchPath, startDate.AddDays(i).ToString("yyyy-MM-dd"), $"data.csv");
-                if (File.Exists(folderPath))
+                form.Invoke(new Action(() =>
                 {
-                    List<AccountingModel> periodList = CSVHelper.CSV.ReadCSV<AccountingModel>(folderPath, true);
-                    Lists.AddRange(periodList);
-                }
+                    List<AccountingModel> Lists = new List<AccountingModel>();
+                    DateTime startDate = startPicker.Value;
+                    TimeSpan dateSpan = endPicker.Value - startPicker.Value;
+                    int timePeriod = dateSpan.Days;
+                    //找到路徑中日期存在相符的資料夾
+                    string csvSearchPath = @"C:\Users\icewi\OneDrive\桌面\testCSV";
+                    for (int i = 0; i <= timePeriod; i++)
+                    {
+                        string folderPath = Path.Combine(csvSearchPath, startDate.AddDays(i).ToString("yyyy-MM-dd"), $"data.csv");
+                        if (File.Exists(folderPath))
+                        {
+                            List<AccountingModel> periodList = CSVHelper.CSV.ReadCSV<AccountingModel>(folderPath, true);
+                            Lists.AddRange(periodList);
+                        }
+                    }
+
+                    //為了做到記憶體管理
+                    dataGridView1.DataSource = null;
+
+                    // 清空所有columns的欄位
+                    dataGridView1.Columns.Clear();
+
+                    // 記憶體回收
+                    GC.Collect();
+
+                    //下方程式碼再載入時會造成過多記憶體的損耗以及增加讀取的時間，即使有記憶體回收仍會造成該狀況，因此因從源頭處理，把撈資料的期間限縮
+                    //string csvReadPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", "csvDataPath", $"data.csv");
+                    //List<AccountingModel> readList = CSVHelper.CSV.ReadCSV<AccountingModel>(csvReadPath, true);
+                    dataGridView1.DataSource = Lists;
+
+                    dataGridView1.Columns["compressImagePath1"].Visible = false;
+                    dataGridView1.Columns["compressImagePath2"].Visible = false;
+                    dataGridView1.Columns["csvImagePath1"].Visible = false;
+                    dataGridView1.Columns["csvImagePath2"].Visible = false;
+                    //DataGridViewImageColumn
+
+                    dataGridView1.Columns[0].HeaderText = "日期";
+                    dataGridView1.Columns[1].HeaderText = "帳目名稱";
+                    dataGridView1.Columns[2].HeaderText = "帳目類型";
+                    dataGridView1.Columns[3].HeaderText = "細項";
+                    dataGridView1.Columns[4].HeaderText = "支付方式";
+                    dataGridView1.Columns[5].HeaderText = "金額";
+
+                    DataGridViewImageColumn iconColumn1 = new DataGridViewImageColumn();
+                    DataGridViewImageColumn iconColumn2 = new DataGridViewImageColumn();
+                    iconColumn1.HeaderText = "圖片一";
+                    iconColumn1.ImageLayout = DataGridViewImageCellLayout.Zoom;
+
+                    iconColumn2.HeaderText = "圖片二";
+                    iconColumn2.ImageLayout = DataGridViewImageCellLayout.Zoom;
+
+                    dataGridView1.Columns.Insert(8, iconColumn1);
+                    dataGridView1.Columns.Insert(9, iconColumn2);
+
+                    string csvPath1 = "";
+
+                    if (dataGridView1.Rows.Count > 0)
+                    {
+                        // Print or store the first row's csvImagePath1 for debugging or other uses
+                        csvPath1 = Lists[0].compressImagePath1;
+                    }
+
+                    for (int row = 0; row < dataGridView1.Rows.Count; row++)
+                    {
+                        // 先去讀csvImagePath1,2的資料
+                        Bitmap bmp1 = new Bitmap(Lists[row].csvImagePath1);
+                        Bitmap bmp2 = new Bitmap(Lists[row].csvImagePath2);
+                        ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[8]).Value = bmp1;
+                        ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[9]).Value = bmp2;
+                        // 存四張圖，2張原圖縮小(50*50封面)並略調畫質，另外兩張點進去看到的是壓縮檔圖，約300-500kb
+                    }
+
+                }));
             }
-
-            //為了做到記憶體管理
-            dataGridView1.DataSource = null;
-
-            // 清空所有columns的欄位
-            dataGridView1.Columns.Clear();
-
-            // 記憶體回收
-            GC.Collect();
-
-            //下方程式碼再載入時會造成過多記憶體的損耗以及增加讀取的時間，即使有記憶體回收仍會造成該狀況，因此因從源頭處理，把撈資料的期間限縮
-            //string csvReadPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", "csvDataPath", $"data.csv");
-            //List<AccountingModel> readList = CSVHelper.CSV.ReadCSV<AccountingModel>(csvReadPath, true);
-            dataGridView1.DataSource = Lists;
-
-            dataGridView1.Columns["compressImagePath1"].Visible = false;
-            dataGridView1.Columns["compressImagePath2"].Visible = false;
-            dataGridView1.Columns["csvImagePath1"].Visible = false;
-            dataGridView1.Columns["csvImagePath2"].Visible = false;
-            //DataGridViewImageColumn
-
-            dataGridView1.Columns[0].HeaderText = "日期";
-            dataGridView1.Columns[1].HeaderText = "帳目名稱";
-            dataGridView1.Columns[2].HeaderText = "帳目類型";
-            dataGridView1.Columns[3].HeaderText = "細項";
-            dataGridView1.Columns[4].HeaderText = "支付方式";
-            dataGridView1.Columns[5].HeaderText = "金額";
-
-            DataGridViewImageColumn iconColumn1 = new DataGridViewImageColumn();
-            DataGridViewImageColumn iconColumn2 = new DataGridViewImageColumn();
-            iconColumn1.HeaderText = "圖片一";
-            iconColumn1.ImageLayout = DataGridViewImageCellLayout.Zoom;
-
-            iconColumn2.HeaderText = "圖片二";
-            iconColumn2.ImageLayout = DataGridViewImageCellLayout.Zoom;
-
-            dataGridView1.Columns.Insert(8, iconColumn1);
-            dataGridView1.Columns.Insert(9, iconColumn2);
-
-            string csvPath1 = "";
-
-            if (dataGridView1.Rows.Count > 0)
-            {
-                // Print or store the first row's csvImagePath1 for debugging or other uses
-                csvPath1 = Lists[0].compressImagePath1;
-            }
-
-            for (int row = 0; row < dataGridView1.Rows.Count; row++)
-            {
-                // 先去讀csvImagePath1,2的資料
-                Bitmap bmp1 = new Bitmap(Lists[row].csvImagePath1);
-                Bitmap bmp2 = new Bitmap(Lists[row].csvImagePath2);
-                ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[8]).Value = bmp1;
-                ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[9]).Value = bmp2;
-                // 存四張圖，2張原圖縮小(50*50封面)並略調畫質，另外兩張點進去看到的是壓縮檔圖，約300-500kb
-
-            }
-
         }
 
 

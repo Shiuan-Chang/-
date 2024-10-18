@@ -57,83 +57,29 @@ namespace 記帳系統.Forms
 
         private void AccountNameBox_SelectedIndexChanged(object sender, EventArgs e)
         {
-            List<string> food = new List<string>()
-            {
-                "早餐",
-                "午餐",
-                "晚餐",
-                "下午茶",
-                "霄夜"
-            };
-
-
-            List<string> traffic = new List<string>()
-            {
-                "公車",
-                "捷運",
-                "腳踏車租借",
-                "計程車",
-                "汽/機車油費",
-                "機票"
-            };
-
-            List<string> rent = new List<string>()
-            {
-                "租金"
-            };
-            List<string> dress = new List<string>()
-            {
-                "衣服鞋襪",
-                "理髮",
-                "化妝"
-            };
-            List<string> entertainment = new List<string>()
-            {
-                "電影",
-                "音樂會",
-                "電子遊戲",
-                "影音訂閱"
-            };
-
-            List<string> learning= new List<string>()
-            {
-                "線上課程",
-                "家教",
-            };
-
-            List<string> investment = new List<string>()
-            {
-                "股票",
-                "債券",
-                "基金",
-                "期貨",
-                "其他"
-            };
-
-            switch(AccountNameBox.SelectedValue.ToString()) 
+            switch (AccountNameBox.SelectedValue.ToString())
             {
                 case "用餐":
-                    AccountTypeBox.DataSource = food;
+                    AccountTypeBox.DataSource = DropDownModel.GetFoodItems();
                     break;
                 case "交通":
-                    AccountTypeBox.DataSource = traffic;
+                    AccountTypeBox.DataSource = DropDownModel.GetTrafficItems();
                     break;
                 case "租金":
-                    AccountTypeBox.DataSource =rent;
+                    AccountTypeBox.DataSource = DropDownModel.GetRentItems();
                     break;
                 case "治裝":
-                    AccountTypeBox.DataSource = dress;
+                    AccountTypeBox.DataSource = DropDownModel.GetDressItems();
                     break;
                 case "娛樂":
-                    AccountTypeBox.DataSource = entertainment;
+                    AccountTypeBox.DataSource = DropDownModel.GetEntertainmentItems();
                     break;
                 case "學習":
-                    AccountTypeBox.DataSource = learning;
+                    AccountTypeBox.DataSource = DropDownModel.GetLearningItems();
                     break;
                 case "投資":
-                    AccountTypeBox.DataSource = investment;
+                    AccountTypeBox.DataSource = DropDownModel.GetInvestmentItems();
                     break;
-
             }
         }
 

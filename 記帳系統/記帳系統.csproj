@@ -95,6 +95,7 @@
     </Compile>
     <Compile Include="Forms\SingletonForm .cs" />
     <Compile Include="Models\AccountingModel.cs" />
+    <Compile Include="Models\DropDownModel.cs" />
     <Compile Include="Models\FormType.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -146,6 +147,7 @@
     <Folder Include="CSV transform\ImageSave\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\Images\Junk.png" />
     <Content Include="Resources\Images\AccountForm.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -77,7 +77,6 @@ namespace 記帳系統.Components
                     navButton.Enabled = false;
                 }
             }
-
             this.Width = count * 110;
             this.flowLayoutPanel1.Width = this.Width;
         }
@@ -91,13 +90,11 @@ namespace 記帳系統.Components
                 {
                     button.Enabled = false;
                 }
-            }
-                
+            }               
         }
 
         private void flowLayoutPanel1_Paint(object sender, PaintEventArgs e)
         {
-
         }
     }
 }

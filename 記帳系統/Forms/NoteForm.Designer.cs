@@ -29,7 +29,6 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
-            this.navBar1 = new 記帳系統.Components.NavBar();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.button1 = new System.Windows.Forms.Button();
             this.startPicker = new System.Windows.Forms.DateTimePicker();
@@ -37,17 +36,9 @@
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
+            this.navBar1 = new 記帳系統.Components.NavBar();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
-            // 
-            // navBar1
-            // 
-            this.navBar1.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.navBar1.Location = new System.Drawing.Point(135, 406);
-            this.navBar1.Name = "navBar1";
-            this.navBar1.Size = new System.Drawing.Size(550, 118);
-            this.navBar1.TabIndex = 0;
-            this.navBar1.Load += new System.EventHandler(this.navBar1_Load);
             // 
             // dataGridView1
             // 
@@ -56,6 +47,10 @@
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.Size = new System.Drawing.Size(718, 349);
             this.dataGridView1.TabIndex = 1;
+            this.dataGridView1.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dataGridView1_CellBeginEdit);
+            this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
+            this.dataGridView1.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellEndEdit);
+            this.dataGridView1.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellValueChanged);
             // 
             // button1
             // 
@@ -102,6 +97,15 @@
             this.label2.TabIndex = 6;
             this.label2.Text = "結束時間";
             this.label2.Click += new System.EventHandler(this.label2_Click);
+            // 
+            // navBar1
+            // 
+            this.navBar1.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.navBar1.Location = new System.Drawing.Point(135, 406);
+            this.navBar1.Name = "navBar1";
+            this.navBar1.Size = new System.Drawing.Size(550, 118);
+            this.navBar1.TabIndex = 0;
+            this.navBar1.Load += new System.EventHandler(this.navBar1_Load);
             // 
             // NoteForm
             // 

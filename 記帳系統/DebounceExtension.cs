@@ -36,15 +36,17 @@ namespace 記帳系統
 
         private static void ActionAndDisposeTimer(Control control, Action action)
         {
-            if (control.InvokeRequired)
-            {
-                control.Invoke(new Action(() => ActionAndDisposeTimer(control, action)));
-            }
-            else
-            {
-                action?.Invoke();
-                DisposeTimer(control);
-            }
+            //control.Invoke(new Action(() => action.Invoke()));
+            control.Invoke(new Action(()=> action.Invoke()));
+            //if (control.InvokeRequired)
+            //{
+            //   
+            //}
+            //else
+            //{
+            //    action?.Invoke();
+            //    DisposeTimer(control);
+            //}
         }
 
         private static void DisposeTimer(Control control)

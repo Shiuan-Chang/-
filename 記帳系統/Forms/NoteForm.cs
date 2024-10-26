@@ -11,7 +11,9 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using 記帳系統.Contract;
 using 記帳系統.Models;
+using 記帳系統.Presenters;
 
 
 namespace 記帳系統.Forms
@@ -19,8 +21,9 @@ namespace 記帳系統.Forms
     // 了解一下記憶體外洩以及下載3G，5G高清圖片
 
     [DisplayName("筆記本")]
-    public partial class NoteForm : Form
+    public partial class NoteForm : Form, INoteView
     {
+        private NotePresenter notePresenter;
         public NoteForm()
         {
             // timer要隔一段時間後，才去做button要做的事
@@ -28,6 +31,7 @@ namespace 記帳系統.Forms
             InitializeComponent();
             dataGridView1.CellClick += CellClick;
             startPicker.Value = DateTime.Today.AddDays(-30);
+            notePresenter = new NotePresenter(this);
         }
 
         private void NoteForm_Load(object sender, EventArgs e)
@@ -43,29 +47,67 @@ namespace 記帳系統.Forms
         //一開始把計時器歸零，然後再做延遲計算
         private void button1_Click(object sender, EventArgs e)
         {
-            this.Debounce(LoadData, 1000);
+            this.Debounce(() => notePresenter.LoadData(startPicker.Value, endPicker.Value), 1000);
         }
 
-        private void LoadData()
+        public void ClearDataGridView()
         {
-            isLoading = true;
-            List<AccountingModel> Lists = new List<AccountingModel>();
-            DateTime startDate = startPicker.Value;
-            TimeSpan dateSpan = endPicker.Value - startPicker.Value;
-            int timePeriod = dateSpan.Days;
-            string csvSearchPath = @"C:\Users\icewi\OneDrive\桌面\testCSV";
+            dataGridView1.DataSource = null;
+            dataGridView1.Columns.Clear();
+            GC.Collect();
+        }
 
-            for (int i = 0; i <= timePeriod; i++)
+        public void SetDataSource(List<AccountingModel> lists)
+        {
+            dataGridView1.DataSource = lists;
+        }
+
+        public void HideColumns(string[] columnNames)
+        {
+            foreach (string columnName in columnNames)
             {
-                string folderPath = Path.Combine(csvSearchPath, startDate.AddDays(i).ToString("yyyy-MM-dd"), "data.csv");
-                if (File.Exists(folderPath))
+                if (dataGridView1.Columns.Contains(columnName))
                 {
-                    List<AccountingModel> periodList = CSVHelper.CSV.ReadCSV<AccountingModel>(folderPath, true);
-                    Lists.AddRange(periodList);
+                    dataGridView1.Columns[columnName].Visible = false;
                 }
             }
-            UpdateDataGridView(Lists);
-            isLoading = false;
+        }
+
+        public void SetColumnHeaderText(int columnIndex, string headerText)
+        {
+            if (columnIndex < dataGridView1.Columns.Count)
+            {
+                dataGridView1.Columns[columnIndex].HeaderText = headerText;
+            }
+        }
+
+        public void SetColumnCellTemplate(int columnIndex, DataGridViewCell cellTemplate)
+        {
+            if (columnIndex < dataGridView1.Columns.Count)
+            {
+                dataGridView1.Columns[columnIndex].CellTemplate = cellTemplate;
+            }
+        }
+
+        public void AddImageColumn(string headerText, DataGridViewImageCellLayout layout)
+        {
+            DataGridViewImageColumn imageColumn = new DataGridViewImageColumn
+            {
+                HeaderText = headerText,
+                ImageLayout = layout
+            };
+            dataGridView1.Columns.Add(imageColumn);
+        }
+
+        public void SetRowImageValues(int rowIndex, Bitmap[] images)
+        {
+            if (rowIndex < dataGridView1.Rows.Count)
+            {
+                for (int i = 0; i < images.Length; i++)
+                {
+                    ((DataGridViewImageCell)dataGridView1.Rows[rowIndex].Cells[dataGridView1.Columns.Count - images.Length + i]).Value = images[i];
+                }
+            }
         }
 
 
@@ -102,7 +144,6 @@ namespace 記帳系統.Forms
             }
             return accountType;
         }
-
 
         private void UpdateDataGridView(List<AccountingModel> lists)
         {
@@ -222,24 +263,28 @@ namespace 記帳系統.Forms
                 dataGridView1.Rows[e.RowIndex].Cells[1] = accountName; 
             }
         }        
-
+        // 修改欄位內容
         private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            if (isLoading) return; // 避免初次加載時觸發
+            if (isLoading) return; // Avoid handling events during loading
 
-            if (e.ColumnIndex == 1) // 帳目名稱欄位
+            if (e.RowIndex < 0 || e.RowIndex >= dataGridView1.Rows.Count || e.ColumnIndex != 1) return; // Ensure valid row index and correct column
+
+            // Get the account name value safely
+            string accountName = dataGridView1.Rows[e.RowIndex].Cells[1]?.Value?.ToString() ?? string.Empty;
+
+            if (!string.IsNullOrEmpty(accountName))
             {
-                string accountName = dataGridView1.Rows[e.RowIndex].Cells[1].Value?.ToString() ?? string.Empty;
                 DataGridViewComboBoxCell accountTypeCell = GetAccountTypeComboBox(accountName);
+                dataGridView1.Rows[e.RowIndex].Cells[2] = accountTypeCell; // Set the ComboBox cell to the appropriate row
 
-                dataGridView1.Rows[e.RowIndex].Cells[2] = accountTypeCell;
                 if (accountTypeCell.Items.Count > 0)
                 {
-                    accountTypeCell.Value = accountTypeCell.Items[0]; // 確保 Items 不為空
+                    accountTypeCell.Value = accountTypeCell.Items[0]; // Set default value if items exist
                 }
                 else
                 {
-                    accountTypeCell.Value = null; // 或其他適當處理
+                    accountTypeCell.Value = null; // Set null if there are no items
                 }
             }
         }

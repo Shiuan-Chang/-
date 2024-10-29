@@ -48,7 +48,6 @@
             this.dataGridView1.Size = new System.Drawing.Size(718, 349);
             this.dataGridView1.TabIndex = 1;
             this.dataGridView1.CellBeginEdit += new System.Windows.Forms.DataGridViewCellCancelEventHandler(this.dataGridView1_CellBeginEdit);
-            this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             this.dataGridView1.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellEndEdit);
             this.dataGridView1.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellValueChanged);
             // 
@@ -68,7 +67,6 @@
             this.startPicker.Name = "startPicker";
             this.startPicker.Size = new System.Drawing.Size(145, 20);
             this.startPicker.TabIndex = 3;
-            this.startPicker.ValueChanged += new System.EventHandler(this.startPicker_ValueChanged);
             // 
             // endPicker
             // 
@@ -76,7 +74,6 @@
             this.endPicker.Name = "endPicker";
             this.endPicker.Size = new System.Drawing.Size(176, 20);
             this.endPicker.TabIndex = 4;
-            this.endPicker.ValueChanged += new System.EventHandler(this.endPicker_ValueChanged);
             // 
             // label1
             // 
@@ -86,7 +83,6 @@
             this.label1.Size = new System.Drawing.Size(55, 13);
             this.label1.TabIndex = 5;
             this.label1.Text = "開始時間";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // label2
             // 
@@ -96,7 +92,6 @@
             this.label2.Size = new System.Drawing.Size(55, 13);
             this.label2.TabIndex = 6;
             this.label2.Text = "結束時間";
-            this.label2.Click += new System.EventHandler(this.label2_Click);
             // 
             // navBar1
             // 
@@ -105,7 +100,6 @@
             this.navBar1.Name = "navBar1";
             this.navBar1.Size = new System.Drawing.Size(550, 118);
             this.navBar1.TabIndex = 0;
-            this.navBar1.Load += new System.EventHandler(this.navBar1_Load);
             // 
             // NoteForm
             // 

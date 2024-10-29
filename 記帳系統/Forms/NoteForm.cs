@@ -38,7 +38,6 @@ namespace 記帳系統.Forms
         {
 
         }
-
         //設定全局只有一個定時器存在
         private static System.Threading.Timer debounceTimer;
         private static object timerLock = new object();
@@ -57,59 +56,59 @@ namespace 記帳系統.Forms
             GC.Collect();
         }
 
-        public void SetDataSource(List<AccountingModel> lists)
+        public void DataGenerator(List<AccountingModel> lists)
         {
             dataGridView1.DataSource = lists;
+            UpdateDataGridView(lists);
         }
 
-        public void HideColumns(string[] columnNames)
-        {
-            foreach (string columnName in columnNames)
-            {
-                if (dataGridView1.Columns.Contains(columnName))
-                {
-                    dataGridView1.Columns[columnName].Visible = false;
-                }
-            }
-        }
+        //private void HideColumns(string[] columnNames)
+        //{
+        //    foreach (string columnName in columnNames)
+        //    {
+        //        if (dataGridView1.Columns.Contains(columnName))
+        //        {
+        //            dataGridView1.Columns[columnName].Visible = false;
+        //        }
+        //    }
+        //}
 
-        public void SetColumnHeaderText(int columnIndex, string headerText)
-        {
-            if (columnIndex < dataGridView1.Columns.Count)
-            {
-                dataGridView1.Columns[columnIndex].HeaderText = headerText;
-            }
-        }
+        //private void SetColumnHeaderText(int columnIndex, string headerText)
+        //{
+        //    if (columnIndex < dataGridView1.Columns.Count)
+        //    {
+        //        dataGridView1.Columns[columnIndex].HeaderText = headerText;
+        //    }
+        //}
 
-        public void SetColumnCellTemplate(int columnIndex, DataGridViewCell cellTemplate)
-        {
-            if (columnIndex < dataGridView1.Columns.Count)
-            {
-                dataGridView1.Columns[columnIndex].CellTemplate = cellTemplate;
-            }
-        }
+        //private void SetColumnCellTemplate(int columnIndex, DataGridViewCell cellTemplate)
+        //{
+        //    if (columnIndex < dataGridView1.Columns.Count)
+        //    {
+        //        dataGridView1.Columns[columnIndex].CellTemplate = cellTemplate;
+        //    }
+        //}
 
-        public void AddImageColumn(string headerText, DataGridViewImageCellLayout layout)
-        {
-            DataGridViewImageColumn imageColumn = new DataGridViewImageColumn
-            {
-                HeaderText = headerText,
-                ImageLayout = layout
-            };
-            dataGridView1.Columns.Add(imageColumn);
-        }
+        //private void AddImageColumn(string headerText, DataGridViewImageCellLayout layout)
+        //{
+        //    DataGridViewImageColumn imageColumn = new DataGridViewImageColumn
+        //    {
+        //        HeaderText = headerText,
+        //        ImageLayout = layout
+        //    };
+        //    dataGridView1.Columns.Add(imageColumn);
+        //}
 
-        public void SetRowImageValues(int rowIndex, Bitmap[] images)
-        {
-            if (rowIndex < dataGridView1.Rows.Count)
-            {
-                for (int i = 0; i < images.Length; i++)
-                {
-                    ((DataGridViewImageCell)dataGridView1.Rows[rowIndex].Cells[dataGridView1.Columns.Count - images.Length + i]).Value = images[i];
-                }
-            }
-        }
-
+        //private void SetRowImageValues(int rowIndex, Bitmap[] images)
+        //{
+        //    if (rowIndex < dataGridView1.Rows.Count)
+        //    {
+        //        for (int i = 0; i < images.Length; i++)
+        //        {
+        //            ((DataGridViewImageCell)dataGridView1.Rows[rowIndex].Cells[dataGridView1.Columns.Count - images.Length + i]).Value = images[i];
+        //        }
+        //    }
+        //}
 
         private DataGridViewComboBoxCell GetAccountTypeComboBox(string accountName)
         {
@@ -189,7 +188,6 @@ namespace 記帳系統.Forms
 
             dataGridView1.Columns.Insert(8, iconColumn1);
             dataGridView1.Columns.Insert(9, iconColumn2);
-            dataGridView1.Columns.Insert(10, iconColumn3);
 
             string csvPath1 = "";
 
@@ -206,7 +204,6 @@ namespace 記帳系統.Forms
                 Bitmap junkImage = new Bitmap("C:\\CSharp練習\\記帳系統\\記帳系統\\Resources\\Images\\junk.png");
                 ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[8]).Value = bmp1;
                 ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[9]).Value = bmp2;
-                ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[10]).Value = junkImage;
                 // 存四張圖，2張原圖縮小(50*50封面)並略調畫質，另外兩張點進去看到的是壓縮檔圖，約300-500kb
             }
         }
@@ -329,36 +326,6 @@ namespace 記帳系統.Forms
 
             File.Delete(csvReadPath);
             CSVHelper.CSV.WriteCSV(csvReadPath, List);
-        }
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void navBar1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void endPicker_ValueChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void startPicker_ValueChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
         }
     }
 }

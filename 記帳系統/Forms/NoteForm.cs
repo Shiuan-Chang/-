@@ -12,6 +12,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using 記帳系統.Contract;
+using 記帳系統.DataGridViewExtension;
 using 記帳系統.Models;
 using 記帳系統.Presenters;
 
@@ -32,6 +33,9 @@ namespace 記帳系統.Forms
             dataGridView1.CellClick += CellClick;
             startPicker.Value = DateTime.Today.AddDays(-30);
             notePresenter = new NotePresenter(this);
+            dataGridView1.CellBeginEdit += DataGridViewExtension.DataGridViewExtension.dataGridView1_CellBeginEdit;
+            dataGridView1.CellValueChanged += DataGridViewExtension.DataGridViewExtension.dataGridView1_CellValueChanged;
+            dataGridView1.CellEndEdit += DataGridViewExtension.DataGridViewExtension.dataGridView1_CellEndEdit;
         }
 
         private void NoteForm_Load(object sender, EventArgs e)
@@ -43,7 +47,7 @@ namespace 記帳系統.Forms
         private static object timerLock = new object();
         private bool isLoading = false;
 
-        //一開始把計時器歸零，然後再做延遲計算
+        //一開始把計時器歸零，然後再做延遲計算，防止使用者不斷重複按查詢造成記憶體爆炸
         private void button1_Click(object sender, EventArgs e)
         {
             this.Debounce(() => notePresenter.LoadData(startPicker.Value, endPicker.Value), 1000);
@@ -59,7 +63,7 @@ namespace 記帳系統.Forms
         public void DataGenerator(List<AccountingModel> lists)
         {
             dataGridView1.DataSource = lists;
-            UpdateDataGridView(lists);
+            dataGridView1.SetupDataColumns(lists);
         }
 
         //private void HideColumns(string[] columnNames)
@@ -110,39 +114,7 @@ namespace 記帳系統.Forms
         //    }
         //}
 
-        private DataGridViewComboBoxCell GetAccountTypeComboBox(string accountName)
-        {
-            DataGridViewComboBoxCell accountType = new DataGridViewComboBoxCell();
-
-            switch (accountName)
-            {
-                case "用餐":
-                    accountType.DataSource = DropDownModel.GetFoodItems();
-                    break;
-                case "交通":
-                    accountType.DataSource = DropDownModel.GetTrafficItems();
-                    break;
-                case "租金":
-                    accountType.DataSource = DropDownModel.GetRentItems();
-                    break;
-                case "治裝":
-                    accountType.DataSource = DropDownModel.GetDressItems();
-                    break;
-                case "娛樂":
-                    accountType.DataSource = DropDownModel.GetEntertainmentItems();
-                    break;
-                case "學習":
-                    accountType.DataSource = DropDownModel.GetLearningItems();
-                    break;
-                case "投資":
-                    accountType.DataSource = DropDownModel.GetInvestmentItems();
-                    break;
-                default:
-                    accountType.DataSource = new List<string>(); // 默認為空
-                    break;
-            }
-            return accountType;
-        }
+        
 
         private void UpdateDataGridView(List<AccountingModel> lists)
         {
@@ -156,6 +128,7 @@ namespace 記帳系統.Forms
 
         private void SetupDataGridViewColumns(List<AccountingModel> lists)
         {
+            dataGridView1.SetupDataColumns(lists);
             // Configure columns here
             dataGridView1.Columns["compressImagePath1"].Visible = false;
             dataGridView1.Columns["compressImagePath2"].Visible = false;
@@ -247,85 +220,8 @@ namespace 記帳系統.Forms
                 }
 
                 UpdateDataGridView(list);
+
             }
-        }
-
-        // 創造項目名稱的選單
-        private void dataGridView1_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
-        {
-            if (e.ColumnIndex == 1) 
-            {
-                DataGridViewComboBoxCell accountName = new DataGridViewComboBoxCell();
-                accountName.DataSource = new List<string> { "用餐", "交通", "租金", "治裝", "娛樂", "學習", "投資" }; // Your dropdown options
-                dataGridView1.Rows[e.RowIndex].Cells[1] = accountName; 
-            }
-        }        
-        // 修改欄位內容
-        private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
-        {
-            if (isLoading) return; // Avoid handling events during loading
-
-            if (e.RowIndex < 0 || e.RowIndex >= dataGridView1.Rows.Count || e.ColumnIndex != 1) return; // Ensure valid row index and correct column
-
-            // Get the account name value safely
-            string accountName = dataGridView1.Rows[e.RowIndex].Cells[1]?.Value?.ToString() ?? string.Empty;
-
-            if (!string.IsNullOrEmpty(accountName))
-            {
-                DataGridViewComboBoxCell accountTypeCell = GetAccountTypeComboBox(accountName);
-                dataGridView1.Rows[e.RowIndex].Cells[2] = accountTypeCell; // Set the ComboBox cell to the appropriate row
-
-                if (accountTypeCell.Items.Count > 0)
-                {
-                    accountTypeCell.Value = accountTypeCell.Items[0]; // Set default value if items exist
-                }
-                else
-                {
-                    accountTypeCell.Value = null; // Set null if there are no items
-                }
-            }
-        }
-        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.ColumnIndex == 1 || e.ColumnIndex == 2) 
-            {
-                DataGridViewTextBoxCell textBoxCell = new DataGridViewTextBoxCell
-                {
-                    Value = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value
-                };
-                dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex] = textBoxCell; 
-            }
-
-            string endEditData = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
-            //string dateTime = dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString().Split(' ')[0];//結果同285行
-            string date = DateTime.Parse(dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString()).ToString("yyyy-MM-dd");
-            string dateWithHours = dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString();
-            string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", date);
-            string csvReadPath = Path.Combine(folderPath, $"data.csv");
-
-            List<AccountingModel> List = CSVHelper.CSV.ReadCSV<AccountingModel>(csvReadPath, true);
-            foreach (AccountingModel item in List)
-            {
-                if (item.date.ToString() == dateWithHours)
-                {
-                    if (e.ColumnIndex == 1)
-                    {
-                        item.accountName = endEditData;
-                    }
-                    if (e.ColumnIndex == 2)
-                    {
-                        item.accountType = endEditData;
-                    }
-
-                    if (e.ColumnIndex == 5)
-                    {
-                        item.amount = endEditData;
-                    }
-                }
-            }
-
-            File.Delete(csvReadPath);
-            CSVHelper.CSV.WriteCSV(csvReadPath, List);
         }
     }
 }

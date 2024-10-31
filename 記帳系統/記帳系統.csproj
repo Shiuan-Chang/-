@@ -58,6 +58,7 @@
     </Compile>
     <Compile Include="Contract\INotePresenter.cs" />
     <Compile Include="Contract\INoteView.cs" />
+    <Compile Include="DataGridViewExtension\DataGridViewExtension.cs" />
     <Compile Include="DebounceExtension.cs" />
     <Compile Include="Forms\AccountForm.cs">
       <SubType>Form</SubType>

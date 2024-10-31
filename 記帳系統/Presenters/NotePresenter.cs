@@ -38,12 +38,8 @@ namespace 記帳系統.Presenters
                     lists.AddRange(periodList);
                 }
             }
-
-           
             isLoading = false;
-
             //通知view的程式
-
             viewUpdater.DataGenerator(lists);
 
         }

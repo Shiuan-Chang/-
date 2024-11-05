@@ -56,6 +56,8 @@
     <Compile Include="Components\NavBar.Designer.cs">
       <DependentUpon>NavBar.cs</DependentUpon>
     </Compile>
+    <Compile Include="Contract\IAddPresenter.cs" />
+    <Compile Include="Contract\IAddView.cs" />
     <Compile Include="Contract\INotePresenter.cs" />
     <Compile Include="Contract\INoteView.cs" />
     <Compile Include="DataGridViewExtension\DataGridViewExtension.cs" />
@@ -98,8 +100,11 @@
     </Compile>
     <Compile Include="Forms\SingletonForm .cs" />
     <Compile Include="Models\AccountingModel.cs" />
+    <Compile Include="Models\DeleteNoteModel.cs" />
     <Compile Include="Models\DropDownModel.cs" />
     <Compile Include="Models\FormType.cs" />
+    <Compile Include="Models\UpdateNoteModel.cs" />
+    <Compile Include="Presenters\AddPresenter.cs" />
     <Compile Include="Presenters\NotePresenter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

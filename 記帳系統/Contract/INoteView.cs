@@ -11,6 +11,7 @@ namespace 記帳系統.Contract
 {
     public interface INoteView
     {     
-            void DataGenerator(List<AccountingModel> lists);
+        void UpdateDataView(List<AccountingModel> lists);
+        void Reload();
     }
 }

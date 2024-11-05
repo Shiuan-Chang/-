@@ -47,8 +47,9 @@
 
                 dataGridView1.Columns.Insert(8, iconColumn1);
                 dataGridView1.Columns.Insert(9, iconColumn2);
+                dataGridView1.Columns.Insert(10, iconColumn3);
 
-                string csvPath1 = "";
+            string csvPath1 = "";
 
                 if (dataGridView1.Rows.Count > 0)
                 {
@@ -63,8 +64,9 @@
                     Bitmap junkImage = new Bitmap("C:\\CSharp練習\\記帳系統\\記帳系統\\Resources\\Images\\junk.png");
                     ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[8]).Value = bmp1;
                     ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[9]).Value = bmp2;
-                    // 存四張圖，2張原圖縮小(50*50封面)並略調畫質，另外兩張點進去看到的是壓縮檔圖，約300-500kb
-                }
+                    ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[10]).Value = junkImage;
+                // 存四張圖，2張原圖縮小(50*50封面)並略調畫質，另外兩張點進去看到的是壓縮檔圖，約300-500kb
+            }
             }
 
             // 創造項目名稱的選單
@@ -139,48 +141,6 @@
                     }
                 }
             }
-            public static void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
-            {
-                DataGridView dataGridView = sender as DataGridView;
-                if (e.ColumnIndex == 1 || e.ColumnIndex == 2)
-                {
-                    DataGridViewTextBoxCell textBoxCell = new DataGridViewTextBoxCell
-                    {
-                        Value = dataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].Value
-                    };
-                    dataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex] = textBoxCell;
-                }
-
-                string endEditData = dataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
-                //string dateTime = dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString().Split(' ')[0];//結果同285行
-                string date = DateTime.Parse(dataGridView.Rows[e.RowIndex].Cells[0].Value.ToString()).ToString("yyyy-MM-dd");
-                string dateWithHours = dataGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
-                string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", date);
-                string csvReadPath = Path.Combine(folderPath, $"data.csv");
-
-                List<AccountingModel> List = CSVHelper.CSV.ReadCSV<AccountingModel>(csvReadPath, true);
-                foreach (AccountingModel item in List)
-                {
-                    if (item.date.ToString() == dateWithHours)
-                    {
-                        if (e.ColumnIndex == 1)
-                        {
-                            item.accountName = endEditData;
-                        }
-                        if (e.ColumnIndex == 2)
-                        {
-                            item.accountType = endEditData;
-                        }
-
-                        if (e.ColumnIndex == 5)
-                        {
-                            item.amount = endEditData;
-                        }
-                    }
-                }
-
-                File.Delete(csvReadPath);
-                CSVHelper.CSV.WriteCSV(csvReadPath, List);
-            }
+        
         }
     }

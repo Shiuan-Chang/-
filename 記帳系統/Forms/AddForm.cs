@@ -10,18 +10,24 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using CSVHelper;
+using 記帳系統.Contract;
 using 記帳系統.Models;
+using 記帳系統.Presenters;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace 記帳系統.Forms
 {
     [DisplayName("增一筆")]
-    public partial class AddForm : Form
+    public partial class AddForm : Form, IAddView
     {
+        private AddPresenter addPresenter;
         public AddForm()
         {
             InitializeComponent();
+            addPresenter = new AddPresenter(this);
         }
+
+
 
         private void AddForm_Load(object sender, EventArgs e)
         {
@@ -41,8 +47,24 @@ namespace 記帳系統.Forms
             pictureBox1.Load(imagePath);
             pictureBox2.Load(imagePath);
 
+        }
 
-         
+        public void ResetForm()
+        {
+            AccountNameBox.SelectedIndex = 0 ;
+            AccountTypeBox.SelectedIndex = 0;
+            DetailBox.Text = "";
+            PaymentBox.SelectedIndex = 0;
+            AmountBox.Text = "";
+            DateBox.Value = DateTime.Now ;
+            pictureBox1.Image = null;
+            pictureBox2.Image= null;
+        }
+
+        public void ShowMessage() 
+        {
+            MessageBox.Show("已成功上傳");
+            ResetForm();
         }
 
         private void AccountDetail_Click(object sender, EventArgs e)
@@ -85,47 +107,17 @@ namespace 記帳系統.Forms
 
         private void button1_Click(object sender, EventArgs e)
         {
-            //AccountingModel transaction = new AccountingModel
-            //(
-            //  DateBox.Value.ToString("yyyy-MM-dd HH:mm"),
-            //  AccountNameBox.Text,
-            //  AccountTypeBox.Text,
-            //  DetailBox.Text,
-            //  PaymentBox.Text,
-            //  AmountBox.Text,
-             
-            ////圖檔上傳要另存並拿到圖檔路徑，不要拿原始路徑(設定好路徑再另存新黨)
-            ////image 
-            //  Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", $"{DateBox.Value.ToString("yyyy-MM-dd")}", $"{Guid.NewGuid()}.png"),
-            //  Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", $"{DateBox.Value.ToString("yyyy-MM-dd")}", $"{Guid.NewGuid()}.png"),
-            //  Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", $"{DateBox.Value.ToString("yyyy-MM-dd")}", $"{Guid.NewGuid()}.png"),
-            //  Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", $"{DateBox.Value.ToString("yyyy-MM-dd")}", $"{Guid.NewGuid()}.png")
-            //);
-            //List<AccountingModel> transactions = new List<AccountingModel> { transaction };
-
-            //// CSVHeler->CSV.Write & CSV.Read StreamWriter & StremReader 讀/寫CSV
-            //string csvPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", $"{DateBox.Value.ToString("yyyy-MM-dd")}", $"data.csv");
-            //string folderName = DateBox.Value.ToString("yyyy-MM-dd");
-            //string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", folderName);
-            //if( !Directory.Exists( folderPath )) { Directory.CreateDirectory( folderPath ); }
-            //CSVHelper.CSV.WriteCSV(csvPath, transactions);
-
-
-            //SaveCompressedImage(pictureBox1.Image, transaction.compressImagePath1, 50L);
-            //SaveCompressedImage(pictureBox2.Image, transaction.compressImagePath2, 50L);
-
-           
-            //using (Bitmap image1 = new Bitmap(Image.FromFile(transaction.compressImagePath1), new Size(50, 50)))
-            //{ image1.Save(transaction.csvImagePath1); }
-
-            //using (Bitmap image2 = new Bitmap(Image.FromFile(transaction.compressImagePath2), new Size(50, 50)))
-            //{ image2.Save(transaction.csvImagePath2); }
-
-            //MessageBox.Show("已經成功上傳");
+            AddModel addModel = new AddModel();
+            addModel.SelectedAccountType = AccountTypeBox.SelectedItem?.ToString();
+            addModel.SelectedAccountName= AccountNameBox.SelectedIndex.ToString();
+            addModel.Detail = DetailBox.Text;
+            addModel.Date = DateBox.Value;
+            addModel.Payment = PaymentBox.Text;
+            addModel.Amount = AmountBox.Text;
+            addModel.Picture1 = pictureBox1.Image;
+            addModel.Picture2 = pictureBox2.Image;
+            this.Debounce(() => addPresenter.SaveData(addModel), 1000);
         }
-
-
-
 
         private void button2_Click(object sender, EventArgs e)
         {

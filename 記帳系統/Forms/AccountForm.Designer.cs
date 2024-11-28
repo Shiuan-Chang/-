@@ -103,7 +103,6 @@
             this.ConditionPanel.Name = "ConditionPanel";
             this.ConditionPanel.Size = new System.Drawing.Size(553, 340);
             this.ConditionPanel.TabIndex = 13;
-            this.ConditionPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.ConditionPanel_Paint);
             // 
             // label3
             // 
@@ -132,6 +131,7 @@
             this.flowLayoutPanel2.Name = "flowLayoutPanel2";
             this.flowLayoutPanel2.Size = new System.Drawing.Size(553, 117);
             this.flowLayoutPanel2.TabIndex = 15;
+            this.flowLayoutPanel2.Paint += new System.Windows.Forms.PaintEventHandler(this.flowLayoutPanel2_Paint);
             // 
             // checkBox1
             // 
@@ -142,7 +142,7 @@
             this.checkBox1.TabIndex = 0;
             this.checkBox1.Text = "帳目類型";
             this.checkBox1.UseVisualStyleBackColor = true;
-            this.checkBox1.CheckedChanged += new System.EventHandler(this.GroupTypeChanged);
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
             // checkBox2
             // 
@@ -153,7 +153,7 @@
             this.checkBox2.TabIndex = 1;
             this.checkBox2.Text = "用途";
             this.checkBox2.UseVisualStyleBackColor = true;
-            this.checkBox2.CheckedChanged += new System.EventHandler(this.GroupTypeChanged);
+            this.checkBox2.CheckedChanged += new System.EventHandler(this.checkBox2_CheckedChanged);
             // 
             // checkBox3
             // 
@@ -164,14 +164,14 @@
             this.checkBox3.TabIndex = 2;
             this.checkBox3.Text = "支付方式";
             this.checkBox3.UseVisualStyleBackColor = true;
-            this.checkBox3.CheckedChanged += new System.EventHandler(this.GroupTypeChanged);
+            this.checkBox3.CheckedChanged += new System.EventHandler(this.checkBox3_CheckedChanged);
             // 
             // navBar1
             // 
             this.navBar1.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.navBar1.Location = new System.Drawing.Point(284, 591);
+            this.navBar1.Location = new System.Drawing.Point(306, 589);
             this.navBar1.Name = "navBar1";
-            this.navBar1.Size = new System.Drawing.Size(550, 118);
+            this.navBar1.Size = new System.Drawing.Size(550, 120);
             this.navBar1.TabIndex = 1;
             // 
             // AccountForm

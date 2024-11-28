@@ -109,7 +109,7 @@ namespace 記帳系統.Forms
         {
             AddModel addModel = new AddModel();
             addModel.SelectedAccountType = AccountTypeBox.SelectedItem?.ToString();
-            addModel.SelectedAccountName= AccountNameBox.SelectedIndex.ToString();
+            addModel.SelectedAccountName= AccountNameBox.SelectedItem?.ToString();
             addModel.Detail = DetailBox.Text;
             addModel.Date = DateBox.Value;
             addModel.Payment = PaymentBox.Text;

@@ -28,6 +28,8 @@ namespace 記帳系統.Forms
             startPicker.Value = DateTime.Today.AddDays(-30);
             notePresenter = new NotePresenter(this);
         }
+
+
         private void AccountForm_Load(object sender, EventArgs e)
         {
             Dictionary<string, List<string>> types = DropDownModel.Types;
@@ -39,6 +41,11 @@ namespace 記帳系統.Forms
                 CheckBox itemType = new CheckBox();
                 itemType.CheckedChanged += ItemType_CheckedChanged;
                 itemType.Text = items.Key.ToString();
+                itemType.Tag = "condition";
+                if (items.Key == "AnalyzeType")
+                {
+                    itemType.Tag = "analyze";
+                }
                 OptionPanel.Controls.Add(itemType);
 
                 // 寫一個方法觸發選擇資訊丟到list
@@ -119,51 +126,105 @@ namespace 記帳系統.Forms
 
         public void UpdateDataView(List<AccountingModel> lists)
         {
+            //// 根據 lists的rawdata 還有 conditionType的 List 還有 analyzeType的List 去篩選和群組資料
+            //// 提示: group by的條件有可能會沒有，所以需要動態調整group by的欄位
+            //// 所以如果group by 是空的 就相等於沒有做group by 一樣顯示raw data (condition type 也是相同原理)
+
             ClearDataGridView();
-            //dataGridView1.DataSource = lists;
-            //dataGridView1.SetupDataColumns(lists);
 
-            // 根據 lists的rawdata 還有 conditionType的 List 還有 analyzeType的List 去篩選和群組資料
-            // 提示: group by的條件有可能會沒有，所以需要動態調整group by的欄位
-            // 所以如果group by 是空的 就相等於沒有做group by 一樣顯示raw data (condition type 也是相同原理)
+            // 根據 lists 的 raw data 以及 conditionType 和 analyzeType 去篩選和群組數據
+            var filteredData = conditionTypes.Count > 0 ? lists.Where(item => conditionTypes.Contains(item.accountType)).ToList() : lists;
 
-            var filteredData = lists.Where(item => conditionTypes.Contains(item.accountType))
-                        .ToList();
-
-            if (analyzeTypes.Count > 0)
+            // 根據選擇的分析方式進行群組和篩選
+            bool isAnalysisMode = analyzeTypes.Count > 0;
+            if (isAnalysisMode)
             {
-                var groupedData = filteredData.GroupBy(item => new
+                var groupedData = filteredData.GroupBy(item =>
+                    analyzeTypes.Contains("帳目類型") ? item.accountType :
+                    analyzeTypes.Contains("用途") ? item.detail :
+                    analyzeTypes.Contains("支付方式") ? item.paymentMethod : null)
+                .Select(group => new AccountingModel
                 {
-                    GroupKey = analyzeTypes.Contains("SomeCondition") ? item.amount : null,
-                    // 添加其他 group by 的條件
-                })
-                .Select(group => new { group.Key, Items = group.ToList() })
-                .ToList();
+                    accountType = group.Key,
+                    detail = group.Key,
+                    paymentMethod = group.Key,
+                    amount = group.Sum(x => long.Parse(x.amount)).ToString() // 累加同類型的金額
+                }).ToList();
+
+                UpdateDataGridViewColumns(groupedData, isAnalysisMode);
             }
             else
             {
-                // 沒有 group by 條件就顯示原始資料
-                dataGridView1.DataSource = filteredData;
+                UpdateDataGridViewColumns(filteredData, isAnalysisMode);
             }
         }
 
-        private void ConditionPanel_Paint(object sender, PaintEventArgs e)
+        private void UpdateDataGridViewColumns(List<AccountingModel> data, bool isAnalysisMode)
+        {
+            dataGridView1.DataSource = data;
+
+            // 只顯示選擇的分析方式對應的欄位和金額欄位
+            foreach (DataGridViewColumn column in dataGridView1.Columns)
+            {
+                if (!isAnalysisMode)
+                {
+                    column.Visible = true; // 顯示所有欄位
+                }
+                else
+                {
+                    // 如果分析方式選擇的是 "帳目類型"，只顯示 "accountType" 和 "amount" 欄位
+                    if (analyzeTypes.Contains("帳目類型"))
+                    {
+                        column.Visible = column.Name == "accountType" || column.Name == "amount";
+                    }
+                    // 如果分析方式選擇的是 "用途"，只顯示 "detail" 和 "amount" 欄位
+                    else if (analyzeTypes.Contains("用途"))
+                    {
+                        column.Visible = column.Name == "detail" || column.Name == "amount";
+                    }
+                    // 如果分析方式選擇的是 "支付方式"，只顯示 "paymentMethod" 和 "amount" 欄位
+                    else if (analyzeTypes.Contains("支付方式"))
+                    {
+                        column.Visible = column.Name == "paymentMethod" || column.Name == "amount";
+                    }
+                }
+            }
+        }
+
+        private void flowLayoutPanel2_Paint(object sender, PaintEventArgs e)
         {
 
         }
 
-        private void GroupTypeChanged(object sender, EventArgs e)
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)//帳目類型
         {
-            CheckBox item = (CheckBox)sender;
-            if (item.Checked)
-            { analyzeTypes.Add(item.Text); }
+            UpdateAnalyzeType("帳目類型", checkBox1.Checked);
+        }
+
+        private void checkBox2_CheckedChanged(object sender, EventArgs e)//用途
+        {
+            UpdateAnalyzeType("用途", checkBox2.Checked);
+        }
+
+        private void checkBox3_CheckedChanged(object sender, EventArgs e)//支付方式
+        {
+            UpdateAnalyzeType("支付方式", checkBox3.Checked);
+        }
+
+
+        private void UpdateAnalyzeType(string type, bool isChecked)
+        {
+            if (isChecked)
+            {
+                if (!analyzeTypes.Contains(type))
+                    analyzeTypes.Add(type);
+            }
             else
-            { analyzeTypes.Remove(item.Text); }
-        }
-        //public AccountForm()
-        //{
-        //    InitializeComponent();
-        //}
+            {
+                if (analyzeTypes.Contains(type))
+                    analyzeTypes.Remove(type);
+            }
 
+        }
     }
 }

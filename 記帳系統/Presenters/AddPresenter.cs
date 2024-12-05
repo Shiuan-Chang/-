@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoMapper;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -17,61 +18,48 @@ namespace 記帳系統.Presenters
 {
     public class AddPresenter : IAddPresenter
     {
-        private IAddView addView;
+        public IAddView addView;
+        public IRepository repository;
+        public IMapper mapper;
 
-        public AddPresenter(IAddView view)
+        public AddPresenter(IAddView view, IRepository repository, IMapper mapper)
         {
             addView = view;
+            this.repository = repository;
+            this.mapper = mapper;
         }
 
-        public void Initialize()
+        // presenter 這邊主要負責處理商業邏輯、資料轉換(DTO，DAO之間的轉換)
+
+        public void SaveData(AddModel model)
         {
-            // 獲取 AccountName 列表
-            List<string> accountNames = DropdownRepository.GetAccountNames();
+            var dto = mapper.Map<AddFormRawDataDTO>(model);
 
-        }
+            string baseFolderPath = @"C:\Users\icewi\OneDrive\桌面\testCSV";
 
-        public void SaveData(AddModel model) 
-        {
-            string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", model.Date.ToString("yyyy-MM-dd"));
-            if (!Directory.Exists(folderPath)) { Directory.CreateDirectory(folderPath); }
+            // 如果 dto.Date 是 DateTime，直接格式化
+            string formattedDate = dto.Date.ToString("yyyy-MM-dd");
+            string folderPath = Path.Combine(baseFolderPath, formattedDate);
 
-            AccountingModel transaction = new AccountingModel
-            (
-                model.Date.ToString("yyyy-MM-dd HH:mm"),
-                model.SelectedAccountName,
-                model.SelectedAccountType,
-                model.Detail,
-                model.Payment,
-                model.Amount,
-                Path.Combine(folderPath, $"{Guid.NewGuid()}.png"),
-                Path.Combine(folderPath, $"{Guid.NewGuid()}.png"),
-                Path.Combine(folderPath, $"{Guid.NewGuid()}.png"),
-                Path.Combine(folderPath, $"{Guid.NewGuid()}.png")
-            );
 
-            List<AccountingModel> transactions = new List<AccountingModel> { transaction };
+            string picture1Path = Utility.SaveImage.SaveCompressedImage(dto.Picture1, baseFolderPath, formattedDate, $"Picture1_{Guid.NewGuid()}.jpg", 50L);
+            string picture2Path = Utility.SaveImage.SaveCompressedImage(dto.Picture2, baseFolderPath, formattedDate, $"Picture2_{Guid.NewGuid()}.jpg", 50L);
 
-            using (Bitmap compressedImage1 = ImageCompressionUtility.CompressImage(model.Picture1, 50L))
+
+            // 將圖片路徑更新到 DAO
+            var dao = mapper.Map<AddFormRawDataDAO>(dto);
+            dao.Picture1Path = picture1Path;
+            dao.Picture2Path = picture2Path;
+
+
+            // 儲存資料到儲存庫
+            bool result = repository.AddData(dao);
+
+            // 返回操作結果給前端
+            if (result)
             {
-                if (File.Exists(transaction.compressImagePath1))
-                {
-                    File.Delete(transaction.compressImagePath1);
-                }
-                compressedImage1.Save(transaction.compressImagePath1, ImageFormat.Jpeg);
+                addView.ShowMessage("儲存成功");
             }
-
-            using (Bitmap compressedImage2 = ImageCompressionUtility.CompressImage(model.Picture2, 50L))
-            {
-                if (File.Exists(transaction.compressImagePath2))
-                {
-                    File.Delete(transaction.compressImagePath2);
-                }
-                compressedImage2.Save(transaction.compressImagePath2, ImageFormat.Jpeg);
-            }
-
-            this.addView.ShowMessage();
-
         }
     }
 }

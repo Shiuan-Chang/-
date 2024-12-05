@@ -8,8 +8,25 @@ namespace 記帳系統.Models
 {
     public static class DropDownModel
     {
+        public static Dictionary<string, List<string>> Types = new Dictionary<string, List<string>>()
+        {
+            { "用餐", GetFoodItems() },
+            { "交通" ,GetTrafficItems()},
+            { "租金" ,GetRentItems()},
+            { "治裝" ,GetDressItems()},
+            { "娛樂" ,GetEntertainmentItems()},
+            { "學習" ,GetLearningItems()},
+            { "投資" ,GetInvestmentItems()},
+        };
+
+
+
         public static List<string> GetFoodItems()
         {
+
+
+
+
             return new List<string>
         {
             "早餐",

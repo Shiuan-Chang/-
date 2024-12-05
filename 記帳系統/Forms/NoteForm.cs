@@ -11,7 +11,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using 記帳系統.Contract;
+using 記帳系統.DataGridViewExtension;
 using 記帳系統.Models;
+using 記帳系統.Presenters;
 
 
 namespace 記帳系統.Forms
@@ -19,8 +22,9 @@ namespace 記帳系統.Forms
     // 了解一下記憶體外洩以及下載3G，5G高清圖片
 
     [DisplayName("筆記本")]
-    public partial class NoteForm : Form
+    public partial class NoteForm : Form, INoteView
     {
+        private NotePresenter notePresenter;
         public NoteForm()
         {
             // timer要隔一段時間後，才去做button要做的事
@@ -28,154 +32,64 @@ namespace 記帳系統.Forms
             InitializeComponent();
             dataGridView1.CellClick += CellClick;
             startPicker.Value = DateTime.Today.AddDays(-30);
+            notePresenter = new NotePresenter(this);
+            dataGridView1.CellBeginEdit += DataGridViewExtension.DataGridViewExtension.dataGridView1_CellBeginEdit;
+            dataGridView1.CellValueChanged += DataGridViewExtension.DataGridViewExtension.dataGridView1_CellValueChanged;
+            dataGridView1.CellEndEdit += dataGridView1_CellEndEdit;
         }
 
         private void NoteForm_Load(object sender, EventArgs e)
         {
 
         }
-
         //設定全局只有一個定時器存在
         private static System.Threading.Timer debounceTimer;
         private static object timerLock = new object();
         private bool isLoading = false;
 
-        //一開始把計時器歸零，然後再做延遲計算
+        //一開始把計時器歸零，然後再做延遲計算，防止使用者不斷重複按查詢造成記憶體爆炸
         private void button1_Click(object sender, EventArgs e)
         {
-            this.Debounce(LoadData, 1000);
+            this.Debounce(() => SearchData(), 1000);
         }
 
-        private void LoadData()
+        public void Reload()
         {
-            isLoading = true;
-            List<AccountingModel> Lists = new List<AccountingModel>();
-            DateTime startDate = startPicker.Value;
-            TimeSpan dateSpan = endPicker.Value - startPicker.Value;
-            int timePeriod = dateSpan.Days;
-            string csvSearchPath = @"C:\Users\icewi\OneDrive\桌面\testCSV";
-
-            for (int i = 0; i <= timePeriod; i++)
-            {
-                string folderPath = Path.Combine(csvSearchPath, startDate.AddDays(i).ToString("yyyy-MM-dd"), "data.csv");
-                if (File.Exists(folderPath))
-                {
-                    List<AccountingModel> periodList = CSVHelper.CSV.ReadCSV<AccountingModel>(folderPath, true);
-                    Lists.AddRange(periodList);
-                }
-            }
-            UpdateDataGridView(Lists);
-            isLoading = false;
+            SearchData();
         }
 
-
-        private DataGridViewComboBoxCell GetAccountTypeComboBox(string accountName)
+        private void SearchData()
         {
-            DataGridViewComboBoxCell accountType = new DataGridViewComboBoxCell();
-
-            switch (accountName)
-            {
-                case "用餐":
-                    accountType.DataSource = DropDownModel.GetFoodItems();
-                    break;
-                case "交通":
-                    accountType.DataSource = DropDownModel.GetTrafficItems();
-                    break;
-                case "租金":
-                    accountType.DataSource = DropDownModel.GetRentItems();
-                    break;
-                case "治裝":
-                    accountType.DataSource = DropDownModel.GetDressItems();
-                    break;
-                case "娛樂":
-                    accountType.DataSource = DropDownModel.GetEntertainmentItems();
-                    break;
-                case "學習":
-                    accountType.DataSource = DropDownModel.GetLearningItems();
-                    break;
-                case "投資":
-                    accountType.DataSource = DropDownModel.GetInvestmentItems();
-                    break;
-                default:
-                    accountType.DataSource = new List<string>(); // 默認為空
-                    break;
-            }
-            return accountType;
+            notePresenter.LoadData(startPicker.Value, endPicker.Value);
         }
 
+        public void ClearDataGridView()
+        {
+            dataGridView1.DataSource = null;
+            dataGridView1.Columns.Clear();
+            GC.Collect();
+        }
+
+        public void UpdateDataView(List<AccountingModel> lists)
+        {
+            ClearDataGridView();
+            dataGridView1.DataSource = lists;
+            dataGridView1.SetupDataColumns(lists);
+        }
 
         private void UpdateDataGridView(List<AccountingModel> lists)
         {
             dataGridView1.DataSource = null;
             dataGridView1.Columns.Clear();
             GC.Collect();
-
             dataGridView1.DataSource = lists;
-            SetupDataGridViewColumns(lists);
         }
-
-        private void SetupDataGridViewColumns(List<AccountingModel> lists)
-        {
-            // Configure columns here
-            dataGridView1.Columns["compressImagePath1"].Visible = false;
-            dataGridView1.Columns["compressImagePath2"].Visible = false;
-            dataGridView1.Columns["csvImagePath1"].Visible = false;
-            dataGridView1.Columns["csvImagePath2"].Visible = false;
-
-            dataGridView1.Columns[0].HeaderText = "日期";
-            dataGridView1.Columns[3].HeaderText = "細項";
-            dataGridView1.Columns[4].HeaderText = "支付方式";
-            dataGridView1.Columns[5].HeaderText = "金額";
-
-            // 帳目名稱下拉選單
-            dataGridView1.Columns[1].HeaderText = "帳目名稱";
-            dataGridView1.Columns[1].CellTemplate = new DataGridViewTextBoxCell();
-
-            // 帳目類型下拉選單
-            dataGridView1.Columns[2].HeaderText = "帳目類型";
-            dataGridView1.Columns[2].CellTemplate = new DataGridViewTextBoxCell();
-
-
-            DataGridViewImageColumn iconColumn1 = new DataGridViewImageColumn();
-            DataGridViewImageColumn iconColumn2 = new DataGridViewImageColumn();
-            DataGridViewImageColumn iconColumn3 = new DataGridViewImageColumn();
-            iconColumn1.HeaderText = "圖片一";
-            iconColumn1.ImageLayout = DataGridViewImageCellLayout.Zoom;
-            iconColumn2.HeaderText = "圖片二";
-            iconColumn2.ImageLayout = DataGridViewImageCellLayout.Zoom;
-            iconColumn3.HeaderText = "刪除";
-            iconColumn3.ImageLayout = DataGridViewImageCellLayout.Zoom;
-
-            dataGridView1.Columns.Insert(8, iconColumn1);
-            dataGridView1.Columns.Insert(9, iconColumn2);
-            dataGridView1.Columns.Insert(10, iconColumn3);
-
-            string csvPath1 = "";
-
-            if (dataGridView1.Rows.Count > 0)
-            {
-                csvPath1 = lists[0].compressImagePath1;
-            }
-
-            for (int row = 0; row < dataGridView1.Rows.Count; row++)
-            {
-                // 先去讀csvImagePath1,2的資料
-                Bitmap bmp1 = new Bitmap(lists[row].csvImagePath1);
-                Bitmap bmp2 = new Bitmap(lists[row].csvImagePath2);
-                Bitmap junkImage = new Bitmap("C:\\CSharp練習\\記帳系統\\記帳系統\\Resources\\Images\\junk.png");
-                ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[8]).Value = bmp1;
-                ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[9]).Value = bmp2;
-                ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[10]).Value = junkImage;
-                // 存四張圖，2張原圖縮小(50*50封面)並略調畫質，另外兩張點進去看到的是壓縮檔圖，約300-500kb
-            }
-        }
-
         // 用form作控管，在每一次生命週期結束(關閉原圖視窗後)，應該要跟著回收記憶體(回到原來的值)。另外，addform也要把記憶體回收，
         // 可能會有回收不乾淨的行為(不能只用gc回收)，可能有其他地方造成gc處理不乾淨→一行行執行看哪一行程式碼造成記憶體增加→gc不知道要回收哪個
 
-
         private void CellClick(object sender, DataGridViewCellEventArgs e)
         {
+            // 單獨讀取圖片
             if (e.ColumnIndex == 8 || e.ColumnIndex == 9)
             {              
                 AccountingModel selectedImage = (AccountingModel)dataGridView1.Rows[e.RowIndex].DataBoundItem;
@@ -184,136 +98,45 @@ namespace 記帳系統.Forms
                 viewer.ShowDialog();
             }
 
+            //刪除
             if (e.ColumnIndex == 10)
             {
-                // Get the date from the DataGridView and construct the path for the CSV file.
-                string date = DateTime.Parse(dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString()).ToString("yyyy-MM-dd");
-                string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", date);
-                string csvReadPath = Path.Combine(folderPath, "data.csv");
+                AccountingModel selectedData = (AccountingModel)dataGridView1.Rows[e.RowIndex].DataBoundItem;
 
-                // Read the CSV file into a list of AccountingModel.
-                List<AccountingModel> list = CSVHelper.CSV.ReadCSV<AccountingModel>(csvReadPath, true);
-
-                // Remove the item at the specified index.
-                if (list.Count > e.RowIndex)  // Ensure the index is valid.
+                DateTime dateValue;
+                if (DateTime.TryParse(selectedData.date, out dateValue))
                 {
-                    list.RemoveAt(e.RowIndex);
-                    CSVHelper.CSV.WriteCSV(csvReadPath, list);  // Write the updated list back to the CSV.
+                    // Create a DeleteNoteModel using the necessary properties from AccountingModel
+                    DeleteNoteModel deleteData = new DeleteNoteModel
+                    {
+                        NoteDate = dateValue.ToString("yyyy-MM-dd") // 使用需要的日期格式
+                    };
+
+                    // 調用 DeleteData 方法來刪除資料
+                    notePresenter.DeleteData(deleteData);
                 }
 
-                // Optionally delete the entire folder if it's now empty.
-                if (list.Count == 0 && Directory.Exists(folderPath))
-                {
-                    System.Threading.Thread.Sleep(1000);
-                    Directory.Delete(folderPath, true);  // Delete the folder and all contents.
-                }
-
-                UpdateDataGridView(list);
             }
         }
 
-        // 創造項目名稱的選單
-        private void dataGridView1_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
-        {
-            if (e.ColumnIndex == 1) 
-            {
-                DataGridViewComboBoxCell accountName = new DataGridViewComboBoxCell();
-                accountName.DataSource = new List<string> { "用餐", "交通", "租金", "治裝", "娛樂", "學習", "投資" }; // Your dropdown options
-                dataGridView1.Rows[e.RowIndex].Cells[1] = accountName; 
-            }
-        }        
-
-        private void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
-        {
-            if (isLoading) return; // 避免初次加載時觸發
-
-            if (e.ColumnIndex == 1) // 帳目名稱欄位
-            {
-                string accountName = dataGridView1.Rows[e.RowIndex].Cells[1].Value?.ToString() ?? string.Empty;
-                DataGridViewComboBoxCell accountTypeCell = GetAccountTypeComboBox(accountName);
-
-                dataGridView1.Rows[e.RowIndex].Cells[2] = accountTypeCell;
-                if (accountTypeCell.Items.Count > 0)
-                {
-                    accountTypeCell.Value = accountTypeCell.Items[0]; // 確保 Items 不為空
-                }
-                else
-                {
-                    accountTypeCell.Value = null; // 或其他適當處理
-                }
-            }
-        }
+        //值在form，更新完後通知presenter，然後通知view更新畫面
         private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex == 1 || e.ColumnIndex == 2) 
+            DataGridView dataGridView = sender as DataGridView;
+            if (e.ColumnIndex == 1 || e.ColumnIndex == 2)
             {
                 DataGridViewTextBoxCell textBoxCell = new DataGridViewTextBoxCell
                 {
-                    Value = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value
+                    Value = dataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].Value
                 };
-                dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex] = textBoxCell; 
+                dataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex] = textBoxCell;
             }
-
-            string endEditData = dataGridView1.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
+            string endEditData = dataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
             //string dateTime = dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString().Split(' ')[0];//結果同285行
-            string date = DateTime.Parse(dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString()).ToString("yyyy-MM-dd");
-            string dateWithHours = dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString();
-            string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", date);
-            string csvReadPath = Path.Combine(folderPath, $"data.csv");
+            string date = DateTime.Parse(dataGridView.Rows[e.RowIndex].Cells[0].Value.ToString()).ToString("yyyy-MM-dd");
+            string dateWithHours = dataGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
 
-            List<AccountingModel> List = CSVHelper.CSV.ReadCSV<AccountingModel>(csvReadPath, true);
-            foreach (AccountingModel item in List)
-            {
-                if (item.date.ToString() == dateWithHours)
-                {
-                    if (e.ColumnIndex == 1)
-                    {
-                        item.accountName = endEditData;
-                    }
-                    if (e.ColumnIndex == 2)
-                    {
-                        item.accountType = endEditData;
-                    }
-
-                    if (e.ColumnIndex == 5)
-                    {
-                        item.amount = endEditData;
-                    }
-                }
-            }
-
-            File.Delete(csvReadPath);
-            CSVHelper.CSV.WriteCSV(csvReadPath, List);
-        }
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void navBar1_Load(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label1_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void endPicker_ValueChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void startPicker_ValueChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
+            this.notePresenter.UpdateData(new UpdateNoteModel(e.ColumnIndex, date, dateWithHours, endEditData));
         }
     }
 }
@@ -426,5 +249,52 @@ namespace 記帳系統.Forms
 //                // 存四張圖，2張原圖縮小(50*50封面)並略調畫質，另外兩張點進去看到的是壓縮檔圖，約300-500kb
 //            }
 //        }));
+//    }
+//}
+//private void HideColumns(string[] columnNames)
+//{
+//    foreach (string columnName in columnNames)
+//    {
+//        if (dataGridView1.Columns.Contains(columnName))
+//        {
+//            dataGridView1.Columns[columnName].Visible = false;
+//        }
+//    }
+//}
+
+//private void SetColumnHeaderText(int columnIndex, string headerText)
+//{
+//    if (columnIndex < dataGridView1.Columns.Count)
+//    {
+//        dataGridView1.Columns[columnIndex].HeaderText = headerText;
+//    }
+//}
+
+//private void SetColumnCellTemplate(int columnIndex, DataGridViewCell cellTemplate)
+//{
+//    if (columnIndex < dataGridView1.Columns.Count)
+//    {
+//        dataGridView1.Columns[columnIndex].CellTemplate = cellTemplate;
+//    }
+//}
+
+//private void AddImageColumn(string headerText, DataGridViewImageCellLayout layout)
+//{
+//    DataGridViewImageColumn imageColumn = new DataGridViewImageColumn
+//    {
+//        HeaderText = headerText,
+//        ImageLayout = layout
+//    };
+//    dataGridView1.Columns.Add(imageColumn);
+//}
+
+//private void SetRowImageValues(int rowIndex, Bitmap[] images)
+//{
+//    if (rowIndex < dataGridView1.Rows.Count)
+//    {
+//        for (int i = 0; i < images.Length; i++)
+//        {
+//            ((DataGridViewImageCell)dataGridView1.Rows[rowIndex].Cells[dataGridView1.Columns.Count - images.Length + i]).Value = images[i];
+//        }
 //    }
 //}

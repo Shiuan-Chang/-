@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AutoMapper, Version=10.0.0.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoMapper.10.0.0\lib\net461\AutoMapper.dll</HintPath>
+    </Reference>
     <Reference Include="CSVHelper, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\CSVHelper\CSVHelper\CSVHelper\bin\Debug\CSVHelper.dll</HintPath>
@@ -56,6 +59,8 @@
     <Compile Include="Components\NavBar.Designer.cs">
       <DependentUpon>NavBar.cs</DependentUpon>
     </Compile>
+    <Compile Include="Contract\IAccountPresenter.cs" />
+    <Compile Include="Contract\IAccountView.cs" />
     <Compile Include="Contract\IAddPresenter.cs" />
     <Compile Include="Contract\IAddView.cs" />
     <Compile Include="Contract\INotePresenter.cs" />
@@ -99,19 +104,28 @@
       <DependentUpon>SettingForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\SingletonForm .cs" />
+    <Compile Include="Mappings\AddFormProfile.cs" />
     <Compile Include="Models\AccountingModel.cs" />
+    <Compile Include="Models\AddFormRawDataDAO.cs" />
+    <Compile Include="Models\AddFormRawDataDTO.cs" />
     <Compile Include="Models\AddModel.cs" />
     <Compile Include="Models\DeleteNoteModel.cs" />
     <Compile Include="Models\DropDownModel.cs" />
     <Compile Include="Models\FormType.cs" />
+    <Compile Include="Models\GroupbyModel.cs" />
+    <Compile Include="Models\GroupingData.cs" />
+    <Compile Include="Models\RawData.cs" />
     <Compile Include="Models\UpdateNoteModel.cs" />
+    <Compile Include="Presenters\AccountPresenter.cs" />
     <Compile Include="Presenters\AddPresenter.cs" />
     <Compile Include="Presenters\NotePresenter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Repository\AddDropDownRepository.cs" />
+    <Compile Include="Repository\CSVRepository.cs" />
+    <Compile Include="Repository\IRepository.cs" />
     <Compile Include="Student.cs" />
     <Compile Include="Utility\ImageCompressionUtility.cs" />
+    <Compile Include="Utility\SaveImage.cs" />
     <EmbeddedResource Include="Components\NavBar.resx">
       <DependentUpon>NavBar.cs</DependentUpon>
     </EmbeddedResource>
@@ -142,6 +156,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>

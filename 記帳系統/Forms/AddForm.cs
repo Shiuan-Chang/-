@@ -9,10 +9,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using AutoMapper;
 using CSVHelper;
 using 記帳系統.Contract;
+using 記帳系統.Mappings;
 using 記帳系統.Models;
 using 記帳系統.Presenters;
+using 記帳系統.Repository;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ListView;
 
 namespace 記帳系統.Forms
@@ -24,7 +27,16 @@ namespace 記帳系統.Forms
         public AddForm()
         {
             InitializeComponent();
-            addPresenter = new AddPresenter(this);
+            // 初始化 IRepository 和 IMapper
+            IRepository repository = new CSVRepository();
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.AddProfile<AddFormProfile>();
+            });
+            IMapper mapper = config.CreateMapper();
+
+            // 將實例傳遞給 AddPresenter
+            addPresenter = new AddPresenter(this, repository, mapper);
         }
 
 
@@ -61,7 +73,7 @@ namespace 記帳系統.Forms
             pictureBox2.Image= null;
         }
 
-        public void ShowMessage() 
+        public void ShowMessage(string message) 
         {
             MessageBox.Show("已成功上傳");
             ResetForm();
@@ -126,19 +138,23 @@ namespace 記帳系統.Forms
 
         }
 
+
+
         private void UploadFile(object sender, EventArgs e)
         {
-            // 上傳圖檔時就已經被壓縮，accountingmodel會新增2個縮圖參數
-            PictureBox pictureBox = sender as PictureBox;   
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            if(openFileDialog.ShowDialog() == DialogResult.OK)
+            // 確保 sender 是 PictureBox
+            if (sender is PictureBox pictureBox)
             {
-                Console.WriteLine(openFileDialog.FileName);
-                pictureBox.Load(openFileDialog.FileName);
-                pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    Image image = Image.FromFile(openFileDialog.FileName);
+                    pictureBox.Image = image;
+                    pictureBox.SizeMode = PictureBoxSizeMode.StretchImage;
+                }
             }
-            
         }
+        
     }
 }
 //Guid.NewGuid() 是 C# 中的一個方法，用來生成一個全新的全局唯一識別符（GUID）。

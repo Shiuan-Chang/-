@@ -44,8 +44,8 @@
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.label1 = new System.Windows.Forms.Label();
             this.pictureBox2 = new System.Windows.Forms.PictureBox();
-            this.navBar1 = new 記帳系統.Components.NavBar();
             this.button2 = new System.Windows.Forms.Button();
+            this.navBar1 = new 記帳系統.Components.NavBar();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
             this.SuspendLayout();
@@ -226,14 +226,6 @@
             this.pictureBox2.TabStop = false;
             this.pictureBox2.Click += new System.EventHandler(this.UploadFile);
             // 
-            // navBar1
-            // 
-            this.navBar1.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.navBar1.Location = new System.Drawing.Point(106, 533);
-            this.navBar1.Name = "navBar1";
-            this.navBar1.Size = new System.Drawing.Size(550, 118);
-            this.navBar1.TabIndex = 0;
-            // 
             // button2
             // 
             this.button2.Location = new System.Drawing.Point(666, 82);
@@ -243,6 +235,14 @@
             this.button2.Text = "讀取";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.button2_Click);
+            // 
+            // navBar1
+            // 
+            this.navBar1.BackColor = System.Drawing.SystemColors.ButtonHighlight;
+            this.navBar1.Location = new System.Drawing.Point(106, 533);
+            this.navBar1.Name = "navBar1";
+            this.navBar1.Size = new System.Drawing.Size(550, 118);
+            this.navBar1.TabIndex = 0;
             // 
             // AddForm
             // 

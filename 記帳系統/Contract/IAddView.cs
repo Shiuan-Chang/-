@@ -10,6 +10,6 @@ namespace 記帳系統.Contract
 {
     public interface IAddView
     {
-        void ShowMessage();
+        void ShowMessage(string message);
     }
 }

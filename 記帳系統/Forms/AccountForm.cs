@@ -132,7 +132,7 @@ namespace 記帳系統.Forms
 
             ClearDataGridView();
 
-            // 根據 lists 的 raw data 以及 conditionType 和 analyzeType 去篩選和群組數據
+            // 根據 lists 的 raw data 以及 conditionType 和 analyzeType 篩選和群組
             var filteredData = conditionTypes.Count > 0 ? lists.Where(item => conditionTypes.Contains(item.accountType)).ToList() : lists;
 
             // 根據選擇的分析方式進行群組和篩選
@@ -140,7 +140,7 @@ namespace 記帳系統.Forms
             if (isAnalysisMode)
             {
                 var groupedData = filteredData.GroupBy(item =>
-                    analyzeTypes.Contains("帳目類型") ? item.accountType :
+                    analyzeTypes.Contains("帳目類型") ? item.accountType :// 如果包含 "用途"，就按 item.detail（詳細用途）分組
                     analyzeTypes.Contains("用途") ? item.detail :
                     analyzeTypes.Contains("支付方式") ? item.paymentMethod : null)
                 .Select(group => new AccountingModel

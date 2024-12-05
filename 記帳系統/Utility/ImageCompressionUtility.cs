@@ -12,20 +12,24 @@ namespace 記帳系統.Utility
     public static class ImageCompressionUtility
     {
         // 只做壓縮，不做儲存，返回壓縮後的 Bitmap
-        public static Bitmap CompressImage(Image image, long quality)
+        public static void CompressAndSaveImage(Image image, string outputPath, long quality)
         {
-            // 获取 JPEG 编码器
+            // 確保圖片不是 null
+            if (image == null) throw new ArgumentNullException(nameof(image));
+            if (string.IsNullOrEmpty(outputPath)) throw new ArgumentException("Output path cannot be null or empty", nameof(outputPath));
+
+            // 獲取 JPEG 編碼器
             ImageCodecInfo jpgEncoder = GetEncoder(ImageFormat.Jpeg);
+            if (jpgEncoder == null) throw new InvalidOperationException("JPEG encoder not found");
 
-            // 创建编码器参数对象，设定图像质量
-            System.Drawing.Imaging.Encoder myEncoder = System.Drawing.Imaging.Encoder.Quality;
-            EncoderParameters myEncoderParameters = new EncoderParameters(1);
-            EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, quality);
-            myEncoderParameters.Param[0] = myEncoderParameter;
+            // 設定圖像品質參數
+            System.Drawing.Imaging.Encoder qualityEncoder = System.Drawing.Imaging.Encoder.Quality;
+            EncoderParameters encoderParameters = new EncoderParameters(1);
+            EncoderParameter encoderParameter = new EncoderParameter(qualityEncoder, quality);
+            encoderParameters.Param[0] = encoderParameter;
 
-            // 创建一个新的 Bitmap 以存储压缩后的图像
-            Bitmap compressedBitmap = new Bitmap(image.Width, image.Height);
-            try
+            // 使用 Graphics 繪製壓縮圖片
+            using (Bitmap compressedBitmap = new Bitmap(image.Width, image.Height))
             {
                 using (Graphics g = Graphics.FromImage(compressedBitmap))
                 {
@@ -33,30 +37,17 @@ namespace 記帳系統.Utility
                     g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
                     g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-                    // 绘制原始图像到新的 Bitmap 上
+                    // 繪製原始圖像到新 Bitmap
                     g.DrawImage(image, 0, 0, image.Width, image.Height);
                 }
 
-                // 保存到内存流以应用压缩参数
-                using (var tempStream = new MemoryStream())
-                {
-                    compressedBitmap.Save(tempStream, jpgEncoder, myEncoderParameters);
-                    tempStream.Seek(0, SeekOrigin.Begin);
-
-                    // 返回压缩后的图像
-                    return new Bitmap(tempStream);
-                }
-            }
-            finally
-            {
-                // 确保 compressedBitmap 在使用后被正确释放
-                compressedBitmap.Dispose();
+                // 儲存壓縮圖片到指定路徑
+                compressedBitmap.Save(outputPath, jpgEncoder, encoderParameters);
             }
         }
 
         private static ImageCodecInfo GetEncoder(ImageFormat format)
         {
-            // Return the codec with the corresponding format
             ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
             foreach (ImageCodecInfo codec in codecs)
             {

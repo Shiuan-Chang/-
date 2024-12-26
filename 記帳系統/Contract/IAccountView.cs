@@ -9,8 +9,6 @@ namespace 記帳系統.Contract
 {
     public interface IAccountView
     {
-        void RespondGroupList(List<AccountingModel> lists);
-
-
+        void UpdateDataView(List<AccountModel> lists);
     }
 }

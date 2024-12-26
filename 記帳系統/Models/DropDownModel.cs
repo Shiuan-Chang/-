@@ -23,10 +23,6 @@ namespace 記帳系統.Models
 
         public static List<string> GetFoodItems()
         {
-
-
-
-
             return new List<string>
         {
             "早餐",

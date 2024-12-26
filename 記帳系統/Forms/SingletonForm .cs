@@ -51,7 +51,9 @@ namespace 記帳系統.Forms
             {
                 NavBar navbar = (NavBar)navBarField.GetValue(currentForm);
                 navbar.DisableButton(formName); // 调用NavBar的DisableButton方法
+
             }
+
             return currentForm;
         }
         

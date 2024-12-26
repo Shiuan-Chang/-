@@ -30,7 +30,6 @@ namespace 記帳系統.Presenters
         }
 
         // presenter 這邊主要負責處理商業邏輯、資料轉換(DTO，DAO之間的轉換)
-
         public void SaveData(AddModel model)
         {
             var dto = mapper.Map<AddFormRawDataDTO>(model);
@@ -41,16 +40,19 @@ namespace 記帳系統.Presenters
             string formattedDate = dto.Date.ToString("yyyy-MM-dd");
             string folderPath = Path.Combine(baseFolderPath, formattedDate);
 
+            string originalPicture1Path = Utility.SaveImage.SaveOriginalImage(dto.Picture1, baseFolderPath, formattedDate, $"OrigPicture1_{Guid.NewGuid()}.jpg");
+            string originalPicture2Path = Utility.SaveImage.SaveOriginalImage(dto.Picture2, baseFolderPath, formattedDate, $"OrigPicture2_{Guid.NewGuid()}.jpg");
 
-            string picture1Path = Utility.SaveImage.SaveCompressedImage(dto.Picture1, baseFolderPath, formattedDate, $"Picture1_{Guid.NewGuid()}.jpg", 50L);
-            string picture2Path = Utility.SaveImage.SaveCompressedImage(dto.Picture2, baseFolderPath, formattedDate, $"Picture2_{Guid.NewGuid()}.jpg", 50L);
 
+            string CompressedPicture1Path = Utility.SaveImage.SaveCompressedImage(dto.Picture1, baseFolderPath, formattedDate, $"Picture1_{Guid.NewGuid()}.jpg", 50L);
+            string CompressedPicture2Path = Utility.SaveImage.SaveCompressedImage(dto.Picture2, baseFolderPath, formattedDate, $"Picture2_{Guid.NewGuid()}.jpg", 50L);
 
             // 將圖片路徑更新到 DAO
             var dao = mapper.Map<AddFormRawDataDAO>(dto);
-            dao.Picture1Path = picture1Path;
-            dao.Picture2Path = picture2Path;
-
+            dao.Picture1Path = originalPicture1Path;
+            dao.Picture2Path = originalPicture2Path;
+            dao.CompressedPicture1Path = CompressedPicture1Path;
+            dao.CompressedPicture2Path = CompressedPicture2Path;
 
             // 儲存資料到儲存庫
             bool result = repository.AddData(dao);

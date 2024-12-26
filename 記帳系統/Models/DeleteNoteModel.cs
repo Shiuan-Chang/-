@@ -8,13 +8,11 @@ namespace 記帳系統.Models
 {
     public class DeleteNoteModel
     {
-        public string NoteDate { get; set; }
+        public string DeleteDataDate;
 
-        public DeleteNoteModel() { }
-
-        public DeleteNoteModel(string noteDate)
+        public DeleteNoteModel(string DeleteDataDate)
         {
-            NoteDate = noteDate;
+            this.DeleteDataDate = DeleteDataDate;
         }
     }
 }

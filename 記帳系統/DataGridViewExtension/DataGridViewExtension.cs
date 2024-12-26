@@ -1,4 +1,4 @@
-﻿    using System;
+﻿using System;
     using System.Collections.Generic;
     using System.Drawing;
     using System.IO;
@@ -7,21 +7,31 @@
     using System.Threading.Tasks;
     using System.Windows.Forms;
     using 記帳系統.Models;
+using 記帳系統.Presenters;
+using 記帳系統.Repository;
 
     namespace 記帳系統.DataGridViewExtension
     {
-        // 改完做addform MVP，用擴充完成表格顯示功能
-
-        public static class DataGridViewExtension
+    // 改完做addform MVP，用擴充完成表格顯示功能
+    
+    public static class DataGridViewExtension
         {
-            public static void SetupDataColumns(this DataGridView dataGridView1,List<AccountingModel> lists)
-            {
-                dataGridView1.Columns["compressImagePath1"].Visible = false;
-                dataGridView1.Columns["compressImagePath2"].Visible = false;
-                dataGridView1.Columns["csvImagePath1"].Visible = false;
-                dataGridView1.Columns["csvImagePath2"].Visible = false;
 
-                dataGridView1.Columns[0].HeaderText = "日期";
+            // 定義刪除事件委派
+            public delegate void DeleteActionHandler(object sender, DeleteNoteModel model);
+
+            // 刪除事件
+            public static event DeleteActionHandler OnDeleteAction;
+
+
+            public static void SetupDataColumns(this DataGridView dataGridView1,List<NoteModel> lists)
+            {
+                dataGridView1.Columns["CompressedPicture1Path"].Visible = false;
+                dataGridView1.Columns["CompressedPicture2Path"].Visible = false;
+                dataGridView1.Columns["originalPicture1Path"].Visible = false;
+                dataGridView1.Columns["originalPicture2Path"].Visible = false;
+
+                dataGridView1.Columns[0].HeaderText = "帳目類型";
                 dataGridView1.Columns[3].HeaderText = "細項";
                 dataGridView1.Columns[4].HeaderText = "支付方式";
                 dataGridView1.Columns[5].HeaderText = "金額";
@@ -31,7 +41,7 @@
                 dataGridView1.Columns[1].CellTemplate = new DataGridViewTextBoxCell();
 
                 // 帳目類型下拉選單
-                dataGridView1.Columns[2].HeaderText = "帳目類型";
+                dataGridView1.Columns[2].HeaderText = "日期";
                 dataGridView1.Columns[2].CellTemplate = new DataGridViewTextBoxCell();
 
 
@@ -53,14 +63,14 @@
 
                 if (dataGridView1.Rows.Count > 0)
                 {
-                    csvPath1 = lists[0].compressImagePath1;
+                    csvPath1 = lists[0].originalPicture1Path;
                 }
 
                 for (int row = 0; row < dataGridView1.Rows.Count; row++)
                 {
                     // 先去讀csvImagePath1,2的資料
-                    Bitmap bmp1 = new Bitmap(lists[row].csvImagePath1);
-                    Bitmap bmp2 = new Bitmap(lists[row].csvImagePath2);
+                    Bitmap bmp1 = new Bitmap(lists[row].CompressedPicture2Path);
+                    Bitmap bmp2 = new Bitmap(lists[row].CompressedPicture2Path);
                     Bitmap junkImage = new Bitmap("C:\\CSharp練習\\記帳系統\\記帳系統\\Resources\\Images\\junk.png");
                     ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[8]).Value = bmp1;
                     ((DataGridViewImageCell)dataGridView1.Rows[row].Cells[9]).Value = bmp2;
@@ -141,6 +151,5 @@
                     }
                 }
             }
-        
-        }
+    }
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoMapper;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -8,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using 記帳系統.Contract;
 using 記帳系統.Models;
+using 記帳系統.Repository;
 
 namespace 記帳系統.Presenters
 {
@@ -15,34 +17,33 @@ namespace 記帳系統.Presenters
     {
         private bool isLoading;
         private string csvSearchPath = @"C:\Users\icewi\OneDrive\桌面\testCSV";
-        private INoteView viewUpdater;
+        public INoteView noteView;
+        public IRepository repository;
+        public IMapper mapper;
 
-        public NotePresenter(INoteView updater)
+
+        public NotePresenter(INoteView view, IRepository repository, IMapper mapper)
         {
-            viewUpdater = updater;
+            noteView = view;
+            this.repository = repository;
+            this.mapper = mapper;
+        }
+
+        private List<NoteModel> ConvertToNoteModel(List<NotFormRawDataDAO> rawDataList)
+        {
+            return mapper.Map<List<NoteModel>>(rawDataList);
         }
 
         public void LoadData(DateTime startDate, DateTime endDate)
         {
             isLoading = true;
-            List<AccountingModel> lists = new List<AccountingModel>();
-            TimeSpan dateSpan = endDate - startDate;
-            int timePeriod = dateSpan.Days;
-
-            for (int i = 0; i <= timePeriod; i++)
-            {
-                string folderPath = Path.Combine(csvSearchPath, startDate.AddDays(i).ToString("yyyy-MM-dd"), "data.csv");
-                if (File.Exists(folderPath))
-                {
-                    List<AccountingModel> periodList = CSVHelper.CSV.ReadCSV<AccountingModel>(folderPath, true);
-                    lists.AddRange(periodList);
-                }
-            }
+            var rawDataList = repository.GetDatasByDate(startDate, endDate);
+            var noteModelList = ConvertToNoteModel(rawDataList);
             isLoading = false;
             //通知view的程式
-            viewUpdater.UpdateDataView(lists);
-
+            noteView.UpdateDataView(noteModelList);
         }
+
         public void UpdateData(UpdateNoteModel model)
         {
             string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", model.NoteDate);
@@ -73,39 +74,46 @@ namespace 記帳系統.Presenters
             File.Delete(csvReadPath);
             CSVHelper.CSV.WriteCSV(csvReadPath, list);
 
-            this.viewUpdater.Reload();
+            this.noteView.Reload();
         }
 
         public void DeleteData(DeleteNoteModel model)
         {
-            DateTime targetDate = DateTime.Parse(model.NoteDate);
-            string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", targetDate.ToString("yyyy-MM-dd"));
-            string csvReadPath = Path.Combine(folderPath, "data.csv");
-
-            if (File.Exists(csvReadPath))
-            {                
-                List<AccountingModel> list = CSVHelper.CSV.ReadCSV<AccountingModel>(csvReadPath, true);
-            
-                list.RemoveAll(item =>
-                {
-                    DateTime itemDate;
-                    if (DateTime.TryParse(item.date, out itemDate))
-                    {
-                        return itemDate.Date == targetDate.Date;
-                    }
-                    return false;
-                });
-
-                // 寫回 CSV 文件
-                if (list.Count > 0)
-                {
-                    CSVHelper.CSV.WriteCSV(csvReadPath, list);
-                }
-
-                // 更新 view
-                this.viewUpdater.Reload();
+            bool isDeleted = repository.RemoveData(model.DeleteDataDate);
+            if (isDeleted)
+            {
+                // 更新視圖
+                noteView.Reload();
             }
         }
     }
 }
+
+//DateTime targetDate = DateTime.Parse(model.NoteDate);
+//string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", targetDate.ToString("yyyy-MM-dd"));
+//string csvReadPath = Path.Combine(folderPath, "data.csv");
+
+//if (File.Exists(csvReadPath))
+//{                
+//    List<AccountingModel> list = CSVHelper.CSV.ReadCSV<AccountingModel>(csvReadPath, true);
+
+//    list.RemoveAll(item =>
+//    {
+//        DateTime itemDate;
+//        if (DateTime.TryParse(item.date, out itemDate))
+//        {
+//            return itemDate.Date == targetDate.Date;
+//        }
+//        return false;
+//    });
+
+//    // 寫回 CSV 文件
+//    if (list.Count > 0)
+//    {
+//        CSVHelper.CSV.WriteCSV(csvReadPath, list);
+//    }
+
+//    // 更新 view
+//    this.noteView.Reload();
+//}
 

@@ -64,6 +64,7 @@
             this.startPicker.Name = "startPicker";
             this.startPicker.Size = new System.Drawing.Size(145, 20);
             this.startPicker.TabIndex = 3;
+
             // 
             // endPicker
             // 

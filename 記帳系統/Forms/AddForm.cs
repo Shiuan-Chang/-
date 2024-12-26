@@ -31,15 +31,13 @@ namespace 記帳系統.Forms
             IRepository repository = new CSVRepository();
             var config = new MapperConfiguration(cfg =>
             {
-                cfg.AddProfile<AddFormProfile>();
+                cfg.AddProfile<AutoMapperProfile>();
             });
             IMapper mapper = config.CreateMapper();
 
             // 將實例傳遞給 AddPresenter
             addPresenter = new AddPresenter(this, repository, mapper);
         }
-
-
 
         private void AddForm_Load(object sender, EventArgs e)
         {
@@ -58,7 +56,6 @@ namespace 記帳系統.Forms
             string imagePath = Path.Combine(Application.StartupPath, "Resources", "Images", "upload.png");
             pictureBox1.Load(imagePath);
             pictureBox2.Load(imagePath);
-
         }
 
         public void ResetForm()
@@ -138,8 +135,6 @@ namespace 記帳系統.Forms
 
         }
 
-
-
         private void UploadFile(object sender, EventArgs e)
         {
             // 確保 sender 是 PictureBox
@@ -154,7 +149,6 @@ namespace 記帳系統.Forms
                 }
             }
         }
-        
     }
 }
 //Guid.NewGuid() 是 C# 中的一個方法，用來生成一個全新的全局唯一識別符（GUID）。

@@ -25,7 +25,7 @@ namespace 記帳系統.Presenters
             this.mapper = mapper;
         }
 
-        public void LoadData(DateTime startDate, DateTime endDate)
+        public void LoadData(DateTime startDate, DateTime endDate, List<string> conditionTypes, List<string> analyzeTypes)
         {
             isLoading = true;
             var rawDataList = repository.accountFormGetDatasByDate(startDate, endDate);

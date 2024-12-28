@@ -151,5 +151,92 @@ using 記帳系統.Repository;
                     }
                 }
             }
+
+        public static void SetupAccountDataColumns(this DataGridView dataGridView1, List<AccountModel> lists, List<string> conditionTypes, List<string> analyzeTypes) 
+        {
+            // 根據 conditionTypes 篩選
+            var filteredData = conditionTypes.Count > 0 ? lists.Where(item => conditionTypes.Contains(item.AccountType)).ToList() : lists;
+
+            // 是否進入分析模式
+            bool isAnalysisMode = analyzeTypes.Count > 0;
+
+            if (isAnalysisMode)
+            {
+                var groupedData = filteredData.GroupBy(item =>
+                    analyzeTypes.Contains("帳目類型") ? item.AccountType :
+                    analyzeTypes.Contains("用途") ? item.Detail :
+                    analyzeTypes.Contains("支付方式") ? item.PaymentMethod : null)
+                .Select(group =>
+                {
+                    // 根據分組條件設置值
+                    string key = group.Key;
+                    return new AccountModel
+                    {
+                        AccountType = analyzeTypes.Contains("帳目類型") ? key : null,
+                        Detail = analyzeTypes.Contains("用途") ? key : null,
+                        PaymentMethod = analyzeTypes.Contains("支付方式") ? key : null,
+                        Amount = group.Sum(x =>
+                        {
+                            if (long.TryParse(x.Amount, out var parsedAmount)) { return parsedAmount; }
+                            else { return 0; }
+                        }).ToString()
+                    };
+                }).ToList();
+
+                UpdateDataGridViewColumns(dataGridView1, groupedData, isAnalysisMode);
+            }
+            else
+            {
+                UpdateDataGridViewColumns(dataGridView1, filteredData, isAnalysisMode);
+            }
+
+        }
+
+        private static void UpdateDataGridViewColumns(DataGridView dataGridView, List<AccountModel> data, bool isAnalysisMode)
+        {
+            // 清除現有欄位
+            dataGridView.Columns.Clear();
+            dataGridView.DataSource = null;
+
+            // 設定新的資料來源
+            dataGridView.DataSource = data;
+
+            if (isAnalysisMode)
+            {
+                dataGridView.Columns["AccountName"].Visible = false;
+                dataGridView.Columns["Date"].Visible = false;
+                dataGridView.Columns["Picture1Path"].Visible = false;
+                dataGridView.Columns["Picture2Path"].Visible = false;
+                dataGridView.Columns["CompressedPicture1Path"].Visible = false;
+                dataGridView.Columns["CompressedPicture2Path"].Visible = false;
+
+
+                // 確定當前是按哪個分析類型分組
+                bool isAccountTypeGrouping = data.All(x => x.AccountType != null && string.IsNullOrWhiteSpace(x.Detail) && string.IsNullOrWhiteSpace(x.PaymentMethod));
+                bool isDetailGrouping = data.All(x => x.Detail != null && string.IsNullOrWhiteSpace(x.AccountType) && string.IsNullOrWhiteSpace(x.PaymentMethod));
+                bool isPaymentMethodGrouping = data.All(x => x.PaymentMethod != null && string.IsNullOrWhiteSpace(x.AccountType) && string.IsNullOrWhiteSpace(x.Detail));
+
+                // 根據分組類型調整顯示的欄位和標題
+                if (isAccountTypeGrouping) // 按 "帳目類型" 分析
+                {
+                    dataGridView.Columns["Detail"].Visible = false;
+                    dataGridView.Columns["PaymentMethod"].Visible = false;
+                    dataGridView.Columns["AccountType"].HeaderText = "帳目類型";
+                }
+                else if (isDetailGrouping) // 按 "用途" 分析
+                {
+                    dataGridView.Columns["AccountType"].Visible = false;
+                    dataGridView.Columns["PaymentMethod"].Visible = false;
+                    dataGridView.Columns["Detail"].HeaderText = "用途";
+                }
+                else if (isPaymentMethodGrouping) // 按 "支付方式" 分析
+                {
+                    dataGridView.Columns["AccountType"].Visible = false;
+                    dataGridView.Columns["Detail"].Visible = false;
+                    dataGridView.Columns["PaymentMethod"].HeaderText = "支付方式";
+                }
+            }
+
+        }
     }
     }

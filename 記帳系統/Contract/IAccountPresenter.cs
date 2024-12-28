@@ -10,7 +10,7 @@ namespace 記帳系統.Contract
     public interface IAccountPresenter
     {
         //拿到原始資料
-        void LoadData(DateTime startDate, DateTime endDate);
+        void LoadData(DateTime startDate, DateTime endDate, List<string> conditionTypes, List<string> analyzeTypes);
 
 
         //拿到原始資料並回傳groupby後的結果

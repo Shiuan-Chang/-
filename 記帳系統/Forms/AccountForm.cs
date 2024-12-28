@@ -94,7 +94,7 @@ namespace 記帳系統.Forms
         private void button1_Click(object sender, EventArgs e)
         {
             this.Debounce(() => {
-                accountPresenter.LoadData(startPicker.Value, endPicker.Value);
+                accountPresenter.LoadData(startPicker.Value, endPicker.Value, conditionTypes, analyzeTypes);
             }, 1000);
         }
 
@@ -105,7 +105,7 @@ namespace 記帳系統.Forms
 
         private void SearchData()
         {
-            accountPresenter.LoadData(startPicker.Value, endPicker.Value);
+            accountPresenter.LoadData(startPicker.Value, endPicker.Value, conditionTypes, analyzeTypes);
         }
 
         public void ClearDataGridView()
@@ -115,76 +115,19 @@ namespace 記帳系統.Forms
             GC.Collect();
         }
 
-        public void UpdateDataView(List<AccountModel> lists)
+        public void UpdateDataView(List<NoteModel> lists)
         {
-            //// 根據 lists的rawdata 還有 conditionType的 List 還有 analyzeType的List 去篩選和群組資料
-            //// 提示: group by的條件有可能會沒有，所以需要動態調整group by的欄位
-            //// 所以如果group by 是空的 就相等於沒有做group by 一樣顯示raw data (condition type 也是相同原理)
-
             ClearDataGridView();
-
-            // 根據 lists 的 raw data 以及 conditionType 和 analyzeType 篩選和群組
-            var filteredData = conditionTypes.Count > 0 ? lists.Where(item => conditionTypes.Contains(item.AccountType)).ToList() : lists;
-
-            // 根據選擇的分析方式進行群組和篩選
-            bool isAnalysisMode = analyzeTypes.Count > 0;
-            if (isAnalysisMode)
-            {
-                var groupedData = filteredData.GroupBy(item =>
-                    analyzeTypes.Contains("帳目類型") ? item.AccountType :// 如果包含 "用途"，就按 item.detail（詳細用途）分組
-                    analyzeTypes.Contains("用途") ? item.Detail :
-                    analyzeTypes.Contains("支付方式") ? item.PaymentMethod : null)
-                .Select(group => new AccountModel
-                {
-                    AccountType = group.Key,
-                    Detail = group.Key,
-                    PaymentMethod = group.Key,
-                    Amount = group.Sum(x => {if (long.TryParse(x.Amount, out var parsedAmount)){return parsedAmount;}
-                    else
-                     { // 如果無法轉換，可以選擇記錄錯誤或給預設值
-                    return 0;
-                     }
-                }).ToString() // 累加同類型的金額
-                }).ToList();
-
-                UpdateDataGridViewColumns(groupedData, isAnalysisMode);
-            }
-            else
-            {
-                UpdateDataGridViewColumns(filteredData, isAnalysisMode);
-            }
+            dataGridView1.DataSource = lists;
+            dataGridView1.SetupDataColumns(lists);
         }
 
-        private void UpdateDataGridViewColumns(List<AccountModel> data, bool isAnalysisMode)
+        public void UpdateDataView(List<AccountModel> lists)
         {
-            dataGridView1.DataSource = data;
+            ClearDataGridView();
+            dataGridView1.DataSource = lists;
+            dataGridView1.SetupAccountDataColumns(lists, conditionTypes, analyzeTypes);
 
-            // 只顯示選擇的分析方式對應的欄位和金額欄位
-            foreach (DataGridViewColumn column in dataGridView1.Columns)
-            {
-                if (!isAnalysisMode)
-                {
-                    column.Visible = true; // 顯示所有欄位
-                }
-                else
-                {
-                    // 如果分析方式選擇的是 "帳目類型"，只顯示 "accountType" 和 "amount" 欄位
-                    if (analyzeTypes.Contains("帳目類型"))
-                    {
-                        column.Visible = column.Name == "accountType" || column.Name == "amount";
-                    }
-                    // 如果分析方式選擇的是 "用途"，只顯示 "detail" 和 "amount" 欄位
-                    else if (analyzeTypes.Contains("用途"))
-                    {
-                        column.Visible = column.Name == "detail" || column.Name == "amount";
-                    }
-                    // 如果分析方式選擇的是 "支付方式"，只顯示 "paymentMethod" 和 "amount" 欄位
-                    else if (analyzeTypes.Contains("支付方式"))
-                    {
-                        column.Visible = column.Name == "paymentMethod" || column.Name == "amount";
-                    }
-                }
-            }
         }
 
         private void flowLayoutPanel2_Paint(object sender, PaintEventArgs e)

@@ -6,7 +6,8 @@ using System.Threading.Tasks;
 
 namespace 記帳系統.Models
 {
-    public class AddFormRawDataDAO
+    //這邊的model受到CSV表頭判讀的影響，必須和Note設定一致(也就是和CSV設定判讀的方式一致)，否則容易重複生成表頭
+    public class AccountModel
     {
         public string AccountName { get; set; }
         public string AccountType { get; set; }

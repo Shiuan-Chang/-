@@ -17,6 +17,12 @@ namespace 記帳系統.Models
         public string Amount { get; set; }
         public Image Picture1 { get; set; }
         public Image Picture2 { get; set; }
+        public Image CompressedPicture1 { get; set; }
+        public Image CompressedPicture2 { get; set; }
+        public string Picture1Path { get; set; }
+        public string Picture2Path { get; set; }
+        public string CompressedPicture1Path { get; set; }
+        public string CompressedPicture2Path { get; set; }
 
     }
 }

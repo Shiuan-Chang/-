@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoMapper;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -10,14 +11,16 @@ using System.Windows.Forms;
 using 記帳系統.Contract;
 using 記帳系統.DataGridViewExtension;
 using 記帳系統.Models;
+using 記帳系統.Mappings;
 using 記帳系統.Presenters;
+using 記帳系統.Repository;
 
 namespace 記帳系統.Forms
 {
     [DisplayName("帳戶")]
-    public partial class AccountForm : Form, INoteView
+    public partial class AccountForm : Form, IAccountView
     {
-        private INotePresenter notePresenter;//依賴注入打包?
+        private AccountPresenter accountPresenter;
         List<string> conditionTypes = new List<string>();
         List<string> analyzeTypes = new List<string>();
         public AccountForm()
@@ -26,12 +29,18 @@ namespace 記帳系統.Forms
             // button 永遠去呼叫debounce做的事情，因此，會有一個debounce方法，debouce會更改及清空timer的時間(也就是說timer一定會在debounce中)
             InitializeComponent();
             startPicker.Value = DateTime.Today.AddDays(-30);
-            notePresenter = new NotePresenter(this);
-        }
+            IRepository repository = new CSVRepository();
+            var config = new MapperConfiguration(cfg => {
+                cfg.AddProfile<AutoMapperProfile>();
+            });
+            IMapper mapper = config.CreateMapper();
+            accountPresenter = new AccountPresenter(this, repository, mapper);
 
+        }
 
         private void AccountForm_Load(object sender, EventArgs e)
         {
+            // 產生左邊的選項
             Dictionary<string, List<string>> types = DropDownModel.Types;
             foreach (var items in types)
             {
@@ -49,7 +58,6 @@ namespace 記帳系統.Forms
                 OptionPanel.Controls.Add(itemType);
 
                 // 寫一個方法觸發選擇資訊丟到list
-
                 foreach (var option in items.Value)
                 {
                     CheckBox checkBox = new CheckBox();
@@ -57,12 +65,11 @@ namespace 記帳系統.Forms
                     checkBox.Text = option;
                     checkBox.CheckedChanged += CheckBox_CheckedChanged; ;
                     OptionPanel.Controls.Add(checkBox);
-
                 }
                 ConditionPanel.Controls.Add(OptionPanel);
-
             }
         }
+
 
         private void CheckBox_CheckedChanged(object sender, EventArgs e)
         {
@@ -81,30 +88,14 @@ namespace 記帳系統.Forms
             {
                 item.Checked = itemType.Checked;
             }
-            //if (itemType.Checked)
-            //{
-            //    FlowLayoutPanel flowLayoutPanel = (FlowLayoutPanel)itemType.Parent;
-            //    foreach(CheckBox option in flowLayoutPanel.Controls) 
-            //    {
-            //        option.Checked = true;
-            //    }
-            //}
-            //else 
-            //{
-            //    FlowLayoutPanel flowLayoutPanel = (FlowLayoutPanel)itemType.Parent;
-            //    foreach (CheckBox option in flowLayoutPanel.Controls)
-            //    {
-            //        option.Checked = false;
-            //    }
-            //}
         }
-
-
 
         //一開始把計時器歸零，然後再做延遲計算，防止使用者不斷重複按查詢造成記憶體爆炸
         private void button1_Click(object sender, EventArgs e)
         {
-            this.Debounce(() => SearchData(), 1000);
+            this.Debounce(() => {
+                accountPresenter.LoadData(startPicker.Value, endPicker.Value, conditionTypes, analyzeTypes);
+            }, 1000);
         }
 
         public void Reload()
@@ -114,7 +105,7 @@ namespace 記帳系統.Forms
 
         private void SearchData()
         {
-            notePresenter.LoadData(startPicker.Value, endPicker.Value);
+            accountPresenter.LoadData(startPicker.Value, endPicker.Value, conditionTypes, analyzeTypes);
         }
 
         public void ClearDataGridView()
@@ -124,71 +115,19 @@ namespace 記帳系統.Forms
             GC.Collect();
         }
 
-        public void UpdateDataView(List<AccountingModel> lists)
+        public void UpdateDataView(List<NoteModel> lists)
         {
-            //// 根據 lists的rawdata 還有 conditionType的 List 還有 analyzeType的List 去篩選和群組資料
-            //// 提示: group by的條件有可能會沒有，所以需要動態調整group by的欄位
-            //// 所以如果group by 是空的 就相等於沒有做group by 一樣顯示raw data (condition type 也是相同原理)
-
             ClearDataGridView();
-
-            // 根據 lists 的 raw data 以及 conditionType 和 analyzeType 篩選和群組
-            var filteredData = conditionTypes.Count > 0 ? lists.Where(item => conditionTypes.Contains(item.accountType)).ToList() : lists;
-
-            // 根據選擇的分析方式進行群組和篩選
-            bool isAnalysisMode = analyzeTypes.Count > 0;
-            if (isAnalysisMode)
-            {
-                var groupedData = filteredData.GroupBy(item =>
-                    analyzeTypes.Contains("帳目類型") ? item.accountType :// 如果包含 "用途"，就按 item.detail（詳細用途）分組
-                    analyzeTypes.Contains("用途") ? item.detail :
-                    analyzeTypes.Contains("支付方式") ? item.paymentMethod : null)
-                .Select(group => new AccountingModel
-                {
-                    accountType = group.Key,
-                    detail = group.Key,
-                    paymentMethod = group.Key,
-                    amount = group.Sum(x => long.Parse(x.amount)).ToString() // 累加同類型的金額
-                }).ToList();
-
-                UpdateDataGridViewColumns(groupedData, isAnalysisMode);
-            }
-            else
-            {
-                UpdateDataGridViewColumns(filteredData, isAnalysisMode);
-            }
+            dataGridView1.DataSource = lists;
+            dataGridView1.SetupDataColumns(lists);
         }
 
-        private void UpdateDataGridViewColumns(List<AccountingModel> data, bool isAnalysisMode)
+        public void UpdateDataView(List<AccountModel> lists)
         {
-            dataGridView1.DataSource = data;
+            ClearDataGridView();
+            dataGridView1.DataSource = lists;
+            dataGridView1.SetupAccountDataColumns(lists, conditionTypes, analyzeTypes);
 
-            // 只顯示選擇的分析方式對應的欄位和金額欄位
-            foreach (DataGridViewColumn column in dataGridView1.Columns)
-            {
-                if (!isAnalysisMode)
-                {
-                    column.Visible = true; // 顯示所有欄位
-                }
-                else
-                {
-                    // 如果分析方式選擇的是 "帳目類型"，只顯示 "accountType" 和 "amount" 欄位
-                    if (analyzeTypes.Contains("帳目類型"))
-                    {
-                        column.Visible = column.Name == "accountType" || column.Name == "amount";
-                    }
-                    // 如果分析方式選擇的是 "用途"，只顯示 "detail" 和 "amount" 欄位
-                    else if (analyzeTypes.Contains("用途"))
-                    {
-                        column.Visible = column.Name == "detail" || column.Name == "amount";
-                    }
-                    // 如果分析方式選擇的是 "支付方式"，只顯示 "paymentMethod" 和 "amount" 欄位
-                    else if (analyzeTypes.Contains("支付方式"))
-                    {
-                        column.Visible = column.Name == "paymentMethod" || column.Name == "amount";
-                    }
-                }
-            }
         }
 
         private void flowLayoutPanel2_Paint(object sender, PaintEventArgs e)

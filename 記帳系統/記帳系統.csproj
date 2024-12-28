@@ -106,6 +106,8 @@
     <Compile Include="Forms\SingletonForm .cs" />
     <Compile Include="Mappings\AddFormProfile.cs" />
     <Compile Include="Models\AccountingModel.cs" />
+    <Compile Include="Models\AccountRawDataDAO.cs" />
+    <Compile Include="Models\AccountModel.cs" />
     <Compile Include="Models\AddFormRawDataDAO.cs" />
     <Compile Include="Models\AddFormRawDataDTO.cs" />
     <Compile Include="Models\AddModel.cs" />
@@ -114,6 +116,9 @@
     <Compile Include="Models\FormType.cs" />
     <Compile Include="Models\GroupbyModel.cs" />
     <Compile Include="Models\GroupingData.cs" />
+    <Compile Include="Models\NoteModel.cs" />
+    <Compile Include="Models\NotFormRawDataDAO.cs" />
+    <Compile Include="Models\NotFormRawDataDTO.cs" />
     <Compile Include="Models\RawData.cs" />
     <Compile Include="Models\UpdateNoteModel.cs" />
     <Compile Include="Presenters\AccountPresenter.cs" />

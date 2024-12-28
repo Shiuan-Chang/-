@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoMapper;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -14,7 +15,9 @@ using System.Windows.Forms;
 using 記帳系統.Contract;
 using 記帳系統.DataGridViewExtension;
 using 記帳系統.Models;
+using 記帳系統.Mappings;
 using 記帳系統.Presenters;
+using 記帳系統.Repository;
 
 
 namespace 記帳系統.Forms
@@ -30,12 +33,18 @@ namespace 記帳系統.Forms
             // timer要隔一段時間後，才去做button要做的事
             // button 永遠去呼叫debounce做的事情，因此，會有一個debounce方法，debouce會更改及清空timer的時間(也就是說timer一定會在debounce中)
             InitializeComponent();
-            dataGridView1.CellClick += CellClick;
+            //dataGridView1.CellClick += CellClick;
             startPicker.Value = DateTime.Today.AddDays(-30);
-            notePresenter = new NotePresenter(this);
+            IRepository repository = new CSVRepository();
+            var config = new MapperConfiguration(cfg => {
+                cfg.AddProfile<AutoMapperProfile>();
+            });
+            IMapper mapper = config.CreateMapper();
+            notePresenter = new NotePresenter(this, repository, mapper);
             dataGridView1.CellBeginEdit += DataGridViewExtension.DataGridViewExtension.dataGridView1_CellBeginEdit;
             dataGridView1.CellValueChanged += DataGridViewExtension.DataGridViewExtension.dataGridView1_CellValueChanged;
-            dataGridView1.CellEndEdit += dataGridView1_CellEndEdit;
+            dataGridView1.CellClick += dataGridView1_CellClick;
+            //dataGridView1.CellEndEdit += dataGridView1_CellEndEdit;
         }
 
         private void NoteForm_Load(object sender, EventArgs e)
@@ -50,7 +59,9 @@ namespace 記帳系統.Forms
         //一開始把計時器歸零，然後再做延遲計算，防止使用者不斷重複按查詢造成記憶體爆炸
         private void button1_Click(object sender, EventArgs e)
         {
-            this.Debounce(() => SearchData(), 1000);
+            this.Debounce(() => {
+                notePresenter.LoadData(startPicker.Value, endPicker.Value);
+            }, 1000);
         }
 
         public void Reload()
@@ -70,73 +81,28 @@ namespace 記帳系統.Forms
             GC.Collect();
         }
 
-        public void UpdateDataView(List<AccountingModel> lists)
+        public void UpdateDataView(List<NoteModel> lists)
         {
             ClearDataGridView();
             dataGridView1.DataSource = lists;
             dataGridView1.SetupDataColumns(lists);
         }
 
-        private void UpdateDataGridView(List<AccountingModel> lists)
+        // 僅是抓取這一格的值，不需要丟到DataGridViewExtension去額外操作
+        private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            dataGridView1.DataSource = null;
-            dataGridView1.Columns.Clear();
-            GC.Collect();
-            dataGridView1.DataSource = lists;
-        }
-        // 用form作控管，在每一次生命週期結束(關閉原圖視窗後)，應該要跟著回收記憶體(回到原來的值)。另外，addform也要把記憶體回收，
-        // 可能會有回收不乾淨的行為(不能只用gc回收)，可能有其他地方造成gc處理不乾淨→一行行執行看哪一行程式碼造成記憶體增加→gc不知道要回收哪個
-
-        private void CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            // 單獨讀取圖片
-            if (e.ColumnIndex == 8 || e.ColumnIndex == 9)
-            {              
-                AccountingModel selectedImage = (AccountingModel)dataGridView1.Rows[e.RowIndex].DataBoundItem;
-                string imagePath = (e.ColumnIndex == 8) ? selectedImage.compressImagePath1 : selectedImage.compressImagePath2;
-                ImageForm viewer = new ImageForm(imagePath);
-                viewer.ShowDialog();
-            }
-
-            //刪除
-            if (e.ColumnIndex == 10)
+            if (e.RowIndex >= 0 && e.ColumnIndex == 10) 
             {
-                AccountingModel selectedData = (AccountingModel)dataGridView1.Rows[e.RowIndex].DataBoundItem;
+                var dateValue = dataGridView1.Rows[e.RowIndex].Cells[2].Value;
 
-                DateTime dateValue;
-                if (DateTime.TryParse(selectedData.date, out dateValue))
+                if (dateValue != null && !string.IsNullOrEmpty(dateValue.ToString()))
                 {
-                    // Create a DeleteNoteModel using the necessary properties from AccountingModel
-                    DeleteNoteModel deleteData = new DeleteNoteModel
-                    {
-                        NoteDate = dateValue.ToString("yyyy-MM-dd") // 使用需要的日期格式
-                    };
+                    var deleteModel = new DeleteNoteModel(dateValue.ToString());
 
-                    // 調用 DeleteData 方法來刪除資料
-                    notePresenter.DeleteData(deleteData);
+                    notePresenter.DeleteData(deleteModel);
+
                 }
-
             }
-        }
-
-        //值在form，更新完後通知presenter，然後通知view更新畫面
-        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
-        {
-            DataGridView dataGridView = sender as DataGridView;
-            if (e.ColumnIndex == 1 || e.ColumnIndex == 2)
-            {
-                DataGridViewTextBoxCell textBoxCell = new DataGridViewTextBoxCell
-                {
-                    Value = dataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].Value
-                };
-                dataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex] = textBoxCell;
-            }
-            string endEditData = dataGridView.Rows[e.RowIndex].Cells[e.ColumnIndex].Value.ToString();
-            //string dateTime = dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString().Split(' ')[0];//結果同285行
-            string date = DateTime.Parse(dataGridView.Rows[e.RowIndex].Cells[0].Value.ToString()).ToString("yyyy-MM-dd");
-            string dateWithHours = dataGridView.Rows[e.RowIndex].Cells[0].Value.ToString();
-
-            this.notePresenter.UpdateData(new UpdateNoteModel(e.ColumnIndex, date, dateWithHours, endEditData));
         }
     }
 }

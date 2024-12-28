@@ -10,6 +10,36 @@ namespace 記帳系統.Utility
 {
     public class SaveImage
     {
+
+        public static string SaveOriginalImage(Image image, string baseFolderPath, string dateString, string fileName)
+        {
+            if (image == null) return null;
+
+            // 檢查日期格式是否合法
+            if (!DateTime.TryParse(dateString, out var parsedDate))
+            {
+                throw new FormatException($"Invalid date format: {dateString}");
+            }
+
+            // 根據日期建立對應的資料夾
+            string formattedDate = parsedDate.ToString("yyyy-MM-dd");
+            string folderPath = Path.Combine(baseFolderPath, formattedDate);
+
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            // 設定圖片檔案路徑
+            string filePath = Path.Combine(folderPath, fileName);
+
+            image.Save(filePath);
+
+            return filePath;
+        }
+
+
+
         public static string SaveCompressedImage(Image image, string baseFolderPath, string dateString, string fileName, long quality)
         {
             if (image == null) return null;

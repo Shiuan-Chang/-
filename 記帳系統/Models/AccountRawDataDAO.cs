@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace 記帳系統.Models
 {
-    public class AddFormRawDataDAO
+    public class AccountRawDataDAO
     {
         public string AccountName { get; set; }
         public string AccountType { get; set; }

@@ -18,7 +18,7 @@ namespace 記帳系統 {
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(SingletonForm.CreateForm(Models.FormType.AddForm));
+            Application.Run(SingletonForm.CreateForm(Models.FormType.NoteForm));
         }
     }
 }

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace 記帳系統.Models
 {
-    public class AddFormRawDataDAO
+    public class NotFormRawDataDAO
     {
         public string AccountName { get; set; }
         public string AccountType { get; set; }

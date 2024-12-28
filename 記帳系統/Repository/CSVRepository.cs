@@ -17,15 +17,13 @@ namespace 記帳系統.Repository
     // 只留下新增、修改、刪除、群組資料
     public class CSVRepository : IRepository
     {
-        // 
+        // Add Form 使用
         public bool AddData(AddFormRawDataDAO dao)
         {
             if (!DateTime.TryParse(dao.Date, out var parsedDate))
             {
                 throw new FormatException($"Invalid date format: {dao.Date}");
             }
-
-
 
             string formattedDate = parsedDate.ToString("yyyy-MM-dd");
             string baseFolderPath = @"C:\Users\icewi\OneDrive\桌面\testCSV";
@@ -41,11 +39,10 @@ namespace 記帳系統.Repository
             return true;
         }
 
-
-
-        public List<RawData> GetDatasByDate(DateTime start, DateTime end)
+        // NoteForm 日期資料選取
+        public List<NotFormRawDataDAO> GetDatasByDate(DateTime start, DateTime end)
         {
-            List<RawData> lists = new List<RawData>();
+            List<NotFormRawDataDAO> lists = new List<NotFormRawDataDAO>();
             TimeSpan dateSpan = end - start;
             int timePeriod = dateSpan.Days;
 
@@ -54,16 +51,95 @@ namespace 記帳系統.Repository
                 string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", start.AddDays(i).ToString("yyyy-MM-dd"), "data.csv");
                 if (File.Exists(folderPath))
                 {
-                    List<RawData> periodList = CSVHelper.CSV.ReadCSV<RawData>(folderPath, true);
+                    List<NotFormRawDataDAO> periodList = CSVHelper.CSV.ReadCSV<NotFormRawDataDAO>(folderPath, true);
                     lists.AddRange(periodList);
                 }
             }
             return lists;
         }
 
+        // AccountForm 日期資料選取
+        public List<AccountRawDataDAO> accountFormGetDatasByDate(DateTime start, DateTime end)
+        {
+            List<AccountRawDataDAO> lists = new List<AccountRawDataDAO>();
+            TimeSpan dateSpan = end - start;
+            int timePeriod = dateSpan.Days;
+
+            for (int i = 0; i <= timePeriod; i++)
+            {
+                string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", start.AddDays(i).ToString("yyyy-MM-dd"), "data.csv");
+                if (File.Exists(folderPath))
+                {
+                    List<AccountRawDataDAO> periodList = CSVHelper.CSV.ReadCSV<AccountRawDataDAO>(folderPath, true);
+                    lists.AddRange(periodList);
+                }
+            }
+            return lists;
+        }
+
+        public bool ModifyData(RawData data)
+        {
+
+            return true;
+        }
+
+        // NoteForm 使用
+        public bool RemoveData(string date)
+        {
+            if (!DateTime.TryParse(date, out var parsedDate))
+            {
+                throw new FormatException($"Invalid date format: {date}");
+            }
+
+            string folderPath = @"C:\Users\icewi\OneDrive\桌面\testCSV";
+            bool dataRemoved = false;
+
+            if (Directory.Exists(folderPath))
+            {
+                var dataFolders = Directory.GetDirectories(folderPath); // 找到所有日期資料夾
+                foreach (var dataFolder in dataFolders)
+                {
+                    string filePath = Path.Combine(dataFolder, "data.csv");
+                    if (File.Exists(filePath))
+                    {
+                        // 讀取 CSV 中的所有資料
+                        List<NotFormRawDataDAO> folderData = CSVHelper.CSV.ReadCSV<NotFormRawDataDAO>(filePath, true);
+
+                        // 過濾出不匹配的資料
+                        int initialCount = folderData.Count;
+                        folderData.RemoveAll(item =>
+                        {
+                            if (DateTime.TryParse(item.Date, out var itemDate))
+                            {
+                                Console.WriteLine($"Item Date: {item.Date}, Parsed Date: {parsedDate.Date}");
+                                return itemDate.Date == parsedDate.Date; // 刪除匹配的日期資料
+                            }
+                            return false;
+                        });
+
+                        // 如果資料被修改（有資料被刪除）
+                        if (folderData.Count < initialCount)
+                        {
+                            using (var fileStream = new FileStream(filePath, FileMode.Truncate))
+                            {
+                                fileStream.SetLength(0); // 清空文件
+                            }
+
+                            // 寫入更新後的資料
+                            CSVHelper.CSV.WriteCSV(filePath, folderData);
+                            Console.WriteLine($"File updated: {filePath}");
+                            dataRemoved = true;
+                        }
+                    }
+                }
+            }
+            return dataRemoved;
+        }
+
         // GroupingData 應該要包含conditionTypes、analyzeTypes以及lists(就是rawData)
 
 
+        // repository→AccountForm使用
         public List<GroupingData> GetGroupByDatas(GroupbyModel model)
         {
             // 过滤数据
@@ -100,16 +176,7 @@ namespace 記帳系統.Repository
             return groupedData;
         }
 
-        public bool ModifyData(RawData data)
-        {
-
-            return true;
-        }
-
-        public bool RemoveData(string date)
-        {
-            return true;
-        }
+      
     }
 }
 

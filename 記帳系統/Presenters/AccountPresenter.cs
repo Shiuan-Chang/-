@@ -18,10 +18,10 @@ namespace 記帳系統.Presenters
         public IRepository repository;
         public IMapper mapper;
         
-        public AccountPresenter(IAccountView view, IRepository repository, IMapper mapper)
+        public AccountPresenter(IAccountView view, IMapper mapper)
         {
             accountView = view;
-            this.repository = repository;
+            repository = new CSVRepository();
             this.mapper = mapper;
         }
 
@@ -40,9 +40,6 @@ namespace 記帳系統.Presenters
             return mapper.Map<List<AccountModel>>(rawDataList);
         }
 
-        public List<AccountingModel> RespondGroupList(List<AccountingModel> lists)
-        {
-            throw new NotImplementedException();
-        }
+
     }
 }

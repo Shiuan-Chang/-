@@ -126,9 +126,8 @@ using 記帳系統.Repository;
                 return accountType;
             }
 
-
             // 修改欄位內容
-            public static void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        public static void dataGridView1_CellValueChanged(object sender, DataGridViewCellEventArgs e)
             {
                 DataGridView dataGridView = sender as DataGridView;
                 if (e.RowIndex < 0 || e.RowIndex >= dataGridView.Rows.Count || e.ColumnIndex != 1) return; // Ensure valid row index and correct column

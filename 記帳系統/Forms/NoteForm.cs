@@ -35,12 +35,11 @@ namespace 記帳系統.Forms
             InitializeComponent();
             //dataGridView1.CellClick += CellClick;
             startPicker.Value = DateTime.Today.AddDays(-30);
-            IRepository repository = new CSVRepository();
             var config = new MapperConfiguration(cfg => {
                 cfg.AddProfile<AutoMapperProfile>();
             });
             IMapper mapper = config.CreateMapper();
-            notePresenter = new NotePresenter(this, repository, mapper);
+            notePresenter = new NotePresenter(this, mapper);
             dataGridView1.CellBeginEdit += DataGridViewExtension.DataGridViewExtension.dataGridView1_CellBeginEdit;
             dataGridView1.CellValueChanged += DataGridViewExtension.DataGridViewExtension.dataGridView1_CellValueChanged;
             dataGridView1.CellClick += dataGridView1_CellClick;

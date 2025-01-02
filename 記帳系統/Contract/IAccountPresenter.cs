@@ -14,7 +14,7 @@ namespace 記帳系統.Contract
 
 
         //拿到原始資料並回傳groupby後的結果
-        List<AccountingModel> RespondGroupList(List<AccountingModel> lists);
+        
 
 
     }

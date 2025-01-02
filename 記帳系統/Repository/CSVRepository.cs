@@ -79,7 +79,6 @@ namespace 記帳系統.Repository
 
         public bool ModifyData(RawData data)
         {
-
             return true;
         }
 
@@ -136,47 +135,25 @@ namespace 記帳系統.Repository
             return dataRemoved;
         }
 
-        // GroupingData 應該要包含conditionTypes、analyzeTypes以及lists(就是rawData)
+        // piechart使用的資料組
 
-
-        // repository→AccountForm使用
-        public List<GroupingData> GetGroupByDatas(GroupbyModel model)
+        public List<AnalysisRawDataDAO> GetPieChartDatas(DateTime start, DateTime end)
         {
-            // 过滤数据
-            var filteredData = model.ConditionTypes.Count > 0 ? model.RawData.Where(item => model.ConditionTypes.Contains(item.accountType)).ToList() : model.RawData;
+            List<AnalysisRawDataDAO> lists = new List<AnalysisRawDataDAO>();
+            TimeSpan dateSpan = end - start;
+            int timePeriod = dateSpan.Days;
 
-      
-            bool isAnalysisMode = model.AnalyzeTypes.Count > 0;
-            List<GroupingData> groupedData;
-            if (isAnalysisMode)
+            for (int i = 0; i <= timePeriod; i++)
             {
-                groupedData = filteredData.GroupBy(item =>
-                    model.AnalyzeTypes.Contains("帳目類型") ? item.accountType :
-                    model.AnalyzeTypes.Contains("用途") ? item.detail :
-                    model.AnalyzeTypes.Contains("支付方式") ? item.paymentMethod : null)
-                .Select(group => new GroupingData
+                string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", start.AddDays(i).ToString("yyyy-MM-dd"), "data.csv");
+                if (File.Exists(folderPath))
                 {
-                    AccountType = model.AnalyzeTypes.Contains("帳目類型") ? group.Key : null,
-                    Detail = model.AnalyzeTypes.Contains("用途") ? group.Key : null,
-                    PaymentMethod = model.AnalyzeTypes.Contains("支付方式") ? group.Key : null,
-                    Amount = group.Sum(x => int.Parse(x.amount)).ToString() // 注意，这里假设 amount 已经是数值类型，如果是字符串需要先转换
-                }).ToList();
+                    List<AnalysisRawDataDAO> periodList = CSVHelper.CSV.ReadCSV<AnalysisRawDataDAO>(folderPath, true);
+                    lists.AddRange(periodList);
+                }
             }
-            else
-            {
-                groupedData = filteredData.Select(item => new GroupingData
-                {
-                    AccountType = item.accountType,
-                    Detail = item.detail,
-                    PaymentMethod = item.paymentMethod,
-                    Amount = item.amount
-                }).ToList();
-            }
-
-            return groupedData;
+            return lists;
         }
-
-      
     }
 }
 

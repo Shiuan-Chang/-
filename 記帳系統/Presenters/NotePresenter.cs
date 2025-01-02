@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using 記帳系統.Contract;
+using 記帳系統.Forms;
 using 記帳系統.Models;
 using 記帳系統.Repository;
 
@@ -20,12 +21,21 @@ namespace 記帳系統.Presenters
         public INoteView noteView;
         public IRepository repository;
         public IMapper mapper;
+        private AnalysisForm analysisForm;
+        public INoteView analysisView;
 
-
-        public NotePresenter(INoteView view, IRepository repository, IMapper mapper)
+        public NotePresenter(INoteView view, IMapper mapper)
         {
             noteView = view;
-            this.repository = repository;
+            repository = new CSVRepository();
+            this.mapper = mapper;
+        }
+
+        public NotePresenter(INoteView view, AnalysisForm analysisForm, IMapper mapper)
+        {
+            this.analysisForm = analysisForm;
+            analysisView = view;
+            repository = new CSVRepository();
             this.mapper = mapper;
         }
 

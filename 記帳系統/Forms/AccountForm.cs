@@ -29,13 +29,12 @@ namespace 記帳系統.Forms
             // button 永遠去呼叫debounce做的事情，因此，會有一個debounce方法，debouce會更改及清空timer的時間(也就是說timer一定會在debounce中)
             InitializeComponent();
             startPicker.Value = DateTime.Today.AddDays(-30);
-            IRepository repository = new CSVRepository();
+
             var config = new MapperConfiguration(cfg => {
                 cfg.AddProfile<AutoMapperProfile>();
             });
             IMapper mapper = config.CreateMapper();
-            accountPresenter = new AccountPresenter(this, repository, mapper);
-
+            accountPresenter = new AccountPresenter(this, mapper);
         }
 
         private void AccountForm_Load(object sender, EventArgs e)
@@ -70,7 +69,6 @@ namespace 記帳系統.Forms
             }
         }
 
-
         private void CheckBox_CheckedChanged(object sender, EventArgs e)
         {
             CheckBox item = (CheckBox)sender;
@@ -98,16 +96,6 @@ namespace 記帳系統.Forms
             }, 1000);
         }
 
-        public void Reload()
-        {
-            SearchData();
-        }
-
-        private void SearchData()
-        {
-            accountPresenter.LoadData(startPicker.Value, endPicker.Value, conditionTypes, analyzeTypes);
-        }
-
         public void ClearDataGridView()
         {
             dataGridView1.DataSource = null;
@@ -115,12 +103,6 @@ namespace 記帳系統.Forms
             GC.Collect();
         }
 
-        public void UpdateDataView(List<NoteModel> lists)
-        {
-            ClearDataGridView();
-            dataGridView1.DataSource = lists;
-            dataGridView1.SetupDataColumns(lists);
-        }
 
         public void UpdateDataView(List<AccountModel> lists)
         {

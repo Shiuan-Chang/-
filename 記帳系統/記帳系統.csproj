@@ -42,6 +42,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -53,6 +54,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AnalysisChart\StackedBarChart.cs" />
+    <Compile Include="AnalysisChart\LineChart.cs" />
+    <Compile Include="AnalysisChart\PieChart.cs" />
     <Compile Include="Components\NavBar.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -111,6 +115,8 @@
     <Compile Include="Models\AddFormRawDataDAO.cs" />
     <Compile Include="Models\AddFormRawDataDTO.cs" />
     <Compile Include="Models\AddModel.cs" />
+    <Compile Include="Models\AnalysisModel.cs" />
+    <Compile Include="Models\AnalysisRawDataDAO.cs" />
     <Compile Include="Models\DeleteNoteModel.cs" />
     <Compile Include="Models\DropDownModel.cs" />
     <Compile Include="Models\FormType.cs" />
@@ -119,6 +125,7 @@
     <Compile Include="Models\NoteModel.cs" />
     <Compile Include="Models\NotFormRawDataDAO.cs" />
     <Compile Include="Models\NotFormRawDataDTO.cs" />
+    <Compile Include="Models\PieChartModel.cs" />
     <Compile Include="Models\RawData.cs" />
     <Compile Include="Models\UpdateNoteModel.cs" />
     <Compile Include="Presenters\AccountPresenter.cs" />

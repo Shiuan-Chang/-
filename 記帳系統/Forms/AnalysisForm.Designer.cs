@@ -28,9 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.endPicker = new System.Windows.Forms.DateTimePicker();
@@ -43,11 +40,10 @@
             this.checkBox3 = new System.Windows.Forms.CheckBox();
             this.label3 = new System.Windows.Forms.Label();
             this.ConditionPanel = new System.Windows.Forms.FlowLayoutPanel();
-            this.chart1 = new System.Windows.Forms.DataVisualization.Charting.Chart();
             this.comboBox1 = new System.Windows.Forms.ComboBox();
+            this.ChartLayout = new System.Windows.Forms.FlowLayoutPanel();
             this.navBar1 = new 記帳系統.Components.NavBar();
             this.flowLayoutPanel2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.chart1)).BeginInit();
             this.SuspendLayout();
             // 
             // label2
@@ -166,24 +162,6 @@
             this.ConditionPanel.TabIndex = 17;
             this.ConditionPanel.Tag = "condition";
             // 
-            // chart1
-            // 
-            chartArea1.Name = "ChartArea1";
-            this.chart1.ChartAreas.Add(chartArea1);
-            legend1.Name = "Legend1";
-            this.chart1.Legends.Add(legend1);
-            this.chart1.Location = new System.Drawing.Point(561, 83);
-            this.chart1.Name = "chart1";
-            series1.ChartArea = "ChartArea1";
-            series1.ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Pie;
-            series1.Legend = "Legend1";
-            series1.Name = "Series1";
-            this.chart1.Series.Add(series1);
-            this.chart1.Size = new System.Drawing.Size(409, 319);
-            this.chart1.TabIndex = 21;
-            this.chart1.Text = "chart1";
-            this.chart1.Click += new System.EventHandler(this.chart1_Click);
-            // 
             // comboBox1
             // 
             this.comboBox1.FormattingEnabled = true;
@@ -196,6 +174,15 @@
             this.comboBox1.Size = new System.Drawing.Size(155, 21);
             this.comboBox1.TabIndex = 22;
             this.comboBox1.SelectedIndexChanged += new System.EventHandler(this.comboBox1_SelectedIndexChanged);
+            // 
+            // ChartLayout
+            // 
+            this.ChartLayout.AutoScroll = true;
+            this.ChartLayout.Location = new System.Drawing.Point(555, 83);
+            this.ChartLayout.Name = "ChartLayout";
+            this.ChartLayout.Size = new System.Drawing.Size(424, 314);
+            this.ChartLayout.TabIndex = 23;
+            this.ChartLayout.Tag = "";
             // 
             // navBar1
             // 
@@ -210,8 +197,8 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1011, 644);
+            this.Controls.Add(this.ChartLayout);
             this.Controls.Add(this.comboBox1);
-            this.Controls.Add(this.chart1);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.flowLayoutPanel2);
             this.Controls.Add(this.label3);
@@ -229,7 +216,6 @@
             this.Load += new System.EventHandler(this.AnalysisForm_Load);
             this.flowLayoutPanel2.ResumeLayout(false);
             this.flowLayoutPanel2.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.chart1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -250,7 +236,7 @@
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.FlowLayoutPanel ConditionPanel;
-        private System.Windows.Forms.DataVisualization.Charting.Chart chart1;
         private System.Windows.Forms.ComboBox comboBox1;
+        private System.Windows.Forms.FlowLayoutPanel ChartLayout;
     }
 }

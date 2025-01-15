@@ -11,7 +11,7 @@ namespace 記帳系統.Models
     public class UpdateNoteModel
     {
         public int ColumnIndex { get; set; }    
-        public String NoteDate { get; set; }    
+        public string NoteDate { get; set; }    
         public string NoteHour { get;set; }
         public string UpdateData { get;set; }
 

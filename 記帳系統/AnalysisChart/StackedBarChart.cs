@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms.DataVisualization.Charting;
+using 記帳系統.Models;
 
 namespace 記帳系統.AnalysisChart
 {
@@ -12,7 +13,7 @@ namespace 記帳系統.AnalysisChart
     {
         public Chart Chart { get; private set; }
 
-        public StackedBarChart(string title, List<string> months, Dictionary<string, double[]> categoryData)
+        public StackedBarChart(string title, List<string> xValues, List<AnalysisModel> groupedData)
         {
             Chart = new Chart();
 
@@ -27,9 +28,10 @@ namespace 記帳系統.AnalysisChart
             {
                 BackColor = Color.Transparent
             };
+
             // 配置 AxisX
             chartArea.AxisX.Interval = 1;
-            chartArea.AxisX.Title = "月份";
+            chartArea.AxisX.Title = "分類";
             chartArea.AxisX.TitleFont = new Font("Arial", 10f);
             chartArea.AxisX.LineColor = Color.Gray;
             chartArea.AxisX.LabelStyle.ForeColor = Color.Black;
@@ -44,10 +46,11 @@ namespace 記帳系統.AnalysisChart
 
             Chart.ChartAreas.Add(chartArea);
 
-            // 為每個分類添加一個系列
-            foreach (var category in categoryData.Keys)
+            // 依據分組數據動態生成系列
+            var categories = groupedData.Select(g => g.AccountType ?? g.Detail ?? g.PaymentMethod).Distinct().ToList();
+            foreach (var category in categories)
             {
-                Series series = new Series
+                var series = new Series
                 {
                     Name = category,
                     ChartType = SeriesChartType.StackedColumn, // 堆疊柱狀圖
@@ -55,8 +58,14 @@ namespace 記帳系統.AnalysisChart
                     LabelForeColor = Color.Black
                 };
 
-                // 將數據綁定到系列
-                series.Points.DataBindXY(months, categoryData[category]);
+                // 遍歷 xValues 並綁定數據
+                foreach (var xValue in xValues)
+                {
+                    var dataPoint = groupedData.FirstOrDefault(g => g.Date == xValue && (g.AccountType == category || g.Detail == category || g.PaymentMethod == category));
+                    double amount = dataPoint != null && double.TryParse(dataPoint.Amount, out var amt) ? amt : 0;
+                    series.Points.AddXY(xValue, amount);
+                }
+
                 Chart.Series.Add(series);
             }
 

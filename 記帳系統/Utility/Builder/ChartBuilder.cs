@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms.DataVisualization.Charting;
 using 記帳系統.Models;
 using 記帳系統.Repository;
+using 記帳系統.Utility.Strategy.Interface;
+using 記帳系統.Utility.Strategy;
 
 namespace 記帳系統.Utility.Builder.Interface
 {
@@ -24,58 +26,14 @@ namespace 記帳系統.Utility.Builder.Interface
         {
             // 在建構子中先添加 ChartArea
             ChartArea chartArea = new ChartArea("MainArea");
+
             chart.ChartAreas.Add(chartArea);
         }
 
         public IChartBuilder GetRawDatas(DateTime startDate, DateTime endDate)
         {
+            // 拿到原始數據
             rawDataList = repository.GetChartDatas(startDate, endDate);
-            return this;
-        }
-
-        public IChartBuilder GroupData(List<string> conditionTypes, List<string> analyzeTypes)
-        {
-            // 根據 conditionTypes 篩選
-            var filteredData = conditionTypes.Count > 0
-                ? rawDataList.Where(item => conditionTypes.Contains(item.AccountType)).ToList()
-                : rawDataList;
-
-            // 是否進入分析模式
-            bool isAnalysisMode = analyzeTypes.Count > 0;
-
-            if (isAnalysisMode)
-            {
-                processedData = filteredData
-                .GroupBy(item =>
-                    analyzeTypes.Contains("帳目類型") ? item.AccountType :
-                    analyzeTypes.Contains("用途") ? item.Detail :
-                    analyzeTypes.Contains("支付方式") ? item.PaymentMethod : null)
-                .Select(group =>
-                {
-                    string key = group.Key;
-                    return new AnalysisModel
-                    {
-                        AccountType = analyzeTypes.Contains("帳目類型") ? key : null,
-                        Detail = analyzeTypes.Contains("用途") ? key : null,
-                        PaymentMethod = analyzeTypes.Contains("支付方式") ? key : null,
-                        Amount = group.Sum(x =>
-                        {
-                            if (long.TryParse(x.Amount, out var parsedAmount)) { return parsedAmount; }
-                            else { return 0; }
-                        }).ToString()
-                    };
-                }).ToList();
-            }
-            else
-            {
-                processedData = filteredData.Select(item => new AnalysisModel
-                {
-                    AccountType = item.AccountType,
-                    Detail = item.Detail,
-                    PaymentMethod = item.PaymentMethod,
-                    Amount = item.Amount
-                }).ToList();
-            }
             return this;
         }
 
@@ -85,74 +43,108 @@ namespace 記帳系統.Utility.Builder.Interface
             return this;
         }
 
+        // 反射配合策略模式，反射用來尋找chartType，並從策略模式找到對應的processedData
+        public IChartBuilder GroupData(List<string> conditionTypes, List<string> analyzeTypes)
+        {
+            var typeName = $"記帳系統.Utility.Strategy.{chartType}GroupingStrategy"; // 是PieChartGroupingStrategy, StackedChartGroupingStrategy的後綴
+            //
+            var type = Type.GetType(typeName);
+
+            // 使用反射創建策略實例
+            var strategy = (IGroupingStrategy)Activator.CreateInstance(type);
+
+            // 使用策略執行分組邏輯
+            processedData = strategy.GroupData(rawDataList, conditionTypes, analyzeTypes);
+
+            return this;
+        }
+
         public IChartBuilder GetSeries()
         {
-            // 根據圖表類型生成對應的 Series
-            switch (chartType)
-            {
-                case "圓餅圖":
-                    var pieSeries = new Series
-                    {
-                        Name = "圓餅圖",
-                        ChartType = SeriesChartType.Pie,
-                        XValueType = ChartValueType.String,
-                        IsValueShownAsLabel = true,
-                        LabelForeColor = Color.Blue,
-                        CustomProperties = "PieLabelStyle=Outside",
-                        Label = "#VALX: #VALY (#PERCENT)",
-                        ChartArea = "MainArea" // 關聯到已存在的 ChartArea
-                    };
-                    foreach (var data in processedData)
-                    {
-                        if (decimal.TryParse(data.Amount, out var amount))
-                        {
-                            pieSeries.Points.AddXY(data.AccountType ?? data.Detail ?? data.PaymentMethod, amount);
-                        }
-                    }
-                    seriesList.Add(pieSeries);
-                    break;
-
-                case "堆疊圖":
-                    foreach (var data in processedData)
-                    {
-                        var series = new Series
-                        {
-                            Name = data.AccountType ?? data.Detail ?? data.PaymentMethod,
-                            ChartType = SeriesChartType.Column,
-                            ChartArea = "MainArea" // 關聯到已存在的 ChartArea
-                        };
-                        series.Points.AddXY(data.AccountType ?? data.Detail ?? data.PaymentMethod, Convert.ToDouble(data.Amount));
-                        seriesList.Add(series);
-                    }
-                    break;
-
-                case "折線圖":
-                    var lineSeries = new Series
-                    {
-                        Name = "折線圖",
-                        ChartType = SeriesChartType.Line,
-                        ChartArea = "MainArea" // 關聯到已存在的 ChartArea
-                    };
-                    foreach (var data in processedData)
-                    {
-                        lineSeries.Points.AddXY(data.AccountType ?? data.Detail ?? data.PaymentMethod ?? "其他", Convert.ToDouble(data.Amount));
-                    }
-                    seriesList.Add(lineSeries);
-                    break;
-            }
+            var typeName = $"記帳系統.Utility.Strategy.SeriesStrategy.{chartType}Series"; 
+            var type = Type.GetType(typeName);
+            var strategy = (ICreateSeriesStrategy)Activator.CreateInstance(type);
+            // 使用策略類生成 Series
+            seriesList = strategy.CreateSeries(processedData);
             return this;
         }
 
         public Chart Build()
         {
-            // 將所有生成的 Series 添加到 Chart 的 Series 集合中
+            Type type = Type.GetType($"記帳系統.Utility.Strategy.ChartStrategy.{chartType}Strategy");
+            var strategy = (ICreateChartStrategy)Activator.CreateInstance(type);
+            // 使用策略設置圖表區域和數據
+            strategy.SetChartArea(chart);         // 設置 ChartArea
+            chart.Series.Clear();
+            // 將 Series 添加到 Chart
             foreach (var series in seriesList)
             {
                 chart.Series.Add(series);
             }
-
-            // 在此處可以進行任何最終的配置或驗證
             return chart;
         }
     }
 }
+//        case "折線圖":
+//            var lineSeries = new Series
+//            {
+//                Name = "折線圖",
+//                ChartType = SeriesChartType.Line,
+//                ChartArea = "MainArea" // 關聯到已存在的 ChartArea
+//            };
+//            foreach (var data in processedData)
+//            {
+//                lineSeries.Points.AddXY(data.AccountType ?? data.Detail ?? data.PaymentMethod ?? "其他", Convert.ToDouble(data.Amount));
+//            }
+//            seriesList.Add(lineSeries);
+//            break;
+//    }
+//    return this;
+//}
+//public Chart Build()
+//{
+//    switch (chartType)
+//    {
+//        case "圓餅圖":
+//            // 將所有生成的 Series 添加到 Chart 的 Series 集合中
+//            foreach (var series in seriesList)
+//            {
+//                chart.Series.Add(series);
+//            }
+//            // 在此處可以進行任何最終的配置或驗證
+//            break;
+
+//        case "堆疊圖":
+//            // 設置圖表區域
+//            var chartArea = new ChartArea();
+
+//            // 配置 X 軸
+//            chartArea.AxisX.Title = "月份";
+//            chartArea.AxisX.TitleFont = new Font("Arial", 10f);
+//            chartArea.AxisX.Interval = 1;
+//            chartArea.AxisX.LineColor = Color.Gray;
+//            chartArea.AxisX.LabelStyle.ForeColor = Color.Black;
+//            chartArea.AxisX.LabelStyle.Font = new Font("Arial", 10f);
+
+//            // 配置 Y 軸
+//            chartArea.AxisY.Title = "金額";
+//            chartArea.AxisY.TitleFont = new Font("Arial", 10f);
+//            chartArea.AxisY.LineColor = Color.Gray;
+//            chartArea.AxisY.LabelStyle.ForeColor = Color.Black;
+//            chartArea.AxisY.LabelStyle.Font = new Font("Arial", 10f);
+
+//            chart.ChartAreas.Add(chartArea);
+//            foreach (var series in seriesList)
+//            {
+//                chart.Series.Add(series);
+//            }
+//            break;
+
+//        case "折線圖":
+
+//            break;
+
+
+//    }
+//    return chart;
+//}

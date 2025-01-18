@@ -145,6 +145,19 @@
     <Compile Include="Utility\Builder\Interface\IChartBuilder.cs" />
     <Compile Include="Utility\ImageCompressionUtility.cs" />
     <Compile Include="Utility\SaveImage.cs" />
+    <Compile Include="Utility\Strategy\ChartStrategy\LineChartStrategy.cs" />
+    <Compile Include="Utility\Strategy\ChartStrategy\PieChartStrategy.cs" />
+    <Compile Include="Utility\Strategy\ChartStrategy\StackedChartStrategy.cs" />
+    <Compile Include="Utility\Strategy\GroupingStrategyFactory.cs" />
+    <Compile Include="Utility\Strategy\GroupStrategy\LineChartGroupingStrategy.cs" />
+    <Compile Include="Utility\Strategy\Interface\ICreateChartStrategy.cs" />
+    <Compile Include="Utility\Strategy\Interface\ICreateSeriesStrategy.cs" />
+    <Compile Include="Utility\Strategy\Interface\IGroupingStrategy.cs" />
+    <Compile Include="Utility\Strategy\GroupStrategy\PieChartGroupingStrategy.cs" />
+    <Compile Include="Utility\Strategy\GroupStrategy\StackedChartGroupingStrategy.cs" />
+    <Compile Include="Utility\Strategy\SeriesStrategy\LineChartSeries.cs" />
+    <Compile Include="Utility\Strategy\SeriesStrategy\PieChartSeries.cs" />
+    <Compile Include="Utility\Strategy\SeriesStrategy\StackedChartSeries.cs" />
     <EmbeddedResource Include="Components\NavBar.resx">
       <DependentUpon>NavBar.cs</DependentUpon>
     </EmbeddedResource>

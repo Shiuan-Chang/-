@@ -29,13 +29,12 @@ namespace 記帳系統.Forms
         private List<string> analyzeTypes = new List<string>();
         IRepository repository = new CSVRepository();
 
-
-        
         public AnalysisForm()
         {
             InitializeComponent();
             startPicker.Value = DateTime.Today.AddDays(-30);
-            var config = new MapperConfiguration(cfg => {
+            var config = new MapperConfiguration(cfg =>
+            {
                 cfg.AddProfile<AutoMapperProfile>();
             });
             IMapper mapper = config.CreateMapper();
@@ -44,8 +43,6 @@ namespace 記帳系統.Forms
 
         private void AnalysisForm_Load(object sender, EventArgs e)
         {
-            comboBox1.SelectedIndexChanged += comboBox1_SelectedIndexChanged;
-
             Dictionary<string, List<string>> types = DropDownModel.Types;
             foreach (var items in types)
             {
@@ -126,14 +123,15 @@ namespace 記帳系統.Forms
 
         private void button1_Click(object sender, EventArgs e)
         {
-            this.Debounce(() => {
+            this.Debounce(() =>
+            {
                 analysisPresenter.LoadData(startPicker.Value, endPicker.Value);
             }, 1000);
         }
 
         public void ClearDataGridView()
         {
-          
+
             GC.Collect();
         }
 
@@ -157,20 +155,22 @@ namespace 記帳系統.Forms
 
             if (comboBox1.SelectedItem == null) return;
             string chartType = comboBox1.SelectedItem.ToString();
-            analysisPresenter.CreateChart(chartType,startPicker.Value,endPicker.Value);
-        }
-        
-        public void DisplayChart(Chart chart)
-        {
-            RenderChart(chart);
+            analysisPresenter.CreateChart(chartType, startPicker.Value, endPicker.Value);
         }
 
-        private void RenderChart(Chart chart)
+        public void DisplayChart(Chart chart)
         {
             ChartLayout.Controls.Clear();
-            chart.Dock = DockStyle.Fill;
             ChartLayout.Controls.Add(chart);
         }
 
+        public void LoadSeries(List<Series> series)
+        {
+            chart1.Series.Clear();
+            foreach (var serie in series)
+            {
+                chart1.Series.Add(serie);
+            }
+        }
     }
 }

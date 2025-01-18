@@ -13,6 +13,7 @@ namespace 記帳系統.Contract
         void UpdateDataView(List<AnalysisModel> lists);
         void Reload();
         void DisplayChart(Chart chart); // 用於顯示圖表
+        void LoadSeries(List<Series> series);
         List<string> GetConditionTypes(); // 獲取條件類型
         List<string> GetAnalyzeTypes(); // 獲取分析類型
     }

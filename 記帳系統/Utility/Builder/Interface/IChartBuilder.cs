@@ -13,6 +13,7 @@ namespace 記帳系統.Utility.Builder.Interface
         IChartBuilder GroupData(List<string> conditionTypes, List<string> analyzeTypes);
         IChartBuilder GetChartType(string selectItem);
         IChartBuilder GetSeries();
+
         Chart Build();
     }
 }

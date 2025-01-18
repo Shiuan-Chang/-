@@ -16,9 +16,11 @@ namespace 記帳系統.Repository
 
         bool ModifyData(RawData data);
         bool RemoveData(string date);
+
+        List<AnalysisRawDataDAO> AnalysisGetDatasByDate(DateTime start, DateTime end);
         List<NotFormRawDataDAO> GetDatasByDate(DateTime start, DateTime end);
         List<AccountRawDataDAO> accountFormGetDatasByDate(DateTime start, DateTime end);
 
-        List<AnalysisRawDataDAO> GetPieChartDatas(DateTime start, DateTime end);
+        List<AnalysisRawDataDAO> GetChartDatas(DateTime start, DateTime end);
     }
 }

@@ -73,6 +73,18 @@ namespace 記帳系統.Mappings
                 .ForMember(dest => dest.Picture2Path, opt => opt.MapFrom(src => src.Picture2Path))
                 .ForMember(dest => dest.CompressedPicture1Path, opt => opt.MapFrom(src => src.CompressedPicture1Path))
                 .ForMember(dest => dest.CompressedPicture2Path, opt => opt.MapFrom(src => src.CompressedPicture2Path));
+            // AnalysisRawDataDAO -> AnalysisModel
+            CreateMap<AnalysisRawDataDAO, AnalysisModel>()
+                .ForMember(dest => dest.AccountName, opt => opt.MapFrom(src => src.AccountName))
+                .ForMember(dest => dest.AccountType, opt => opt.MapFrom(src => src.AccountType))
+                .ForMember(dest => dest.Detail, opt => opt.MapFrom(src => src.Detail))
+                .ForMember(dest => dest.PaymentMethod, opt => opt.MapFrom(src => src.PaymentMethod))
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date))
+                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
+                .ForMember(dest => dest.Picture1Path, opt => opt.MapFrom(src => src.Picture1Path))
+                .ForMember(dest => dest.Picture2Path, opt => opt.MapFrom(src => src.Picture2Path))
+                .ForMember(dest => dest.CompressedPicture1Path, opt => opt.MapFrom(src => src.CompressedPicture1Path))
+                .ForMember(dest => dest.CompressedPicture2Path, opt => opt.MapFrom(src => src.CompressedPicture2Path));
         }
     }
 }

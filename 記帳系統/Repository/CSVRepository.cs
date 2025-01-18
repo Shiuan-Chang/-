@@ -58,6 +58,24 @@ namespace 記帳系統.Repository
             return lists;
         }
 
+        public List<AnalysisRawDataDAO> AnalysisGetDatasByDate(DateTime start, DateTime end)
+        {
+            List<AnalysisRawDataDAO> lists = new List<AnalysisRawDataDAO>();
+            TimeSpan dateSpan = end - start;
+            int timePeriod = dateSpan.Days;
+
+            for (int i = 0; i <= timePeriod; i++)
+            {
+                string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", start.AddDays(i).ToString("yyyy-MM-dd"), "data.csv");
+                if (File.Exists(folderPath))
+                {
+                    List<AnalysisRawDataDAO> periodList = CSVHelper.CSV.ReadCSV<AnalysisRawDataDAO>(folderPath, true);
+                    lists.AddRange(periodList);
+                }
+            }
+            return lists;
+        }
+
         // AccountForm 日期資料選取
         public List<AccountRawDataDAO> accountFormGetDatasByDate(DateTime start, DateTime end)
         {
@@ -137,7 +155,7 @@ namespace 記帳系統.Repository
 
         // piechart使用的資料組
 
-        public List<AnalysisRawDataDAO> GetPieChartDatas(DateTime start, DateTime end)
+        public List<AnalysisRawDataDAO> GetChartDatas(DateTime start, DateTime end)
         {
             List<AnalysisRawDataDAO> lists = new List<AnalysisRawDataDAO>();
             TimeSpan dateSpan = end - start;
@@ -154,7 +172,7 @@ namespace 記帳系統.Repository
             }
             return lists;
         }
-    }
+        }
 }
 
 //public void SaveData(AddModel model)

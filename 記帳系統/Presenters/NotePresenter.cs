@@ -54,6 +54,7 @@ namespace 記帳系統.Presenters
             noteView.UpdateDataView(noteModelList);
         }
 
+        //更改note上面的既存資料
         public void UpdateData(UpdateNoteModel model)
         {
             string folderPath = Path.Combine(@"C:\Users\icewi\OneDrive\桌面\testCSV", model.NoteDate);
@@ -64,7 +65,7 @@ namespace 記帳系統.Presenters
             {
                 if (item.date.ToString() == model.NoteHour)
                 {
-                    switch(model.ColumnIndex)
+                    switch (model.ColumnIndex)
                     {
                         case 1:
                             item.accountName = model.UpdateData;

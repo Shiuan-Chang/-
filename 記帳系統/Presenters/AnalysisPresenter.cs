@@ -67,8 +67,6 @@ namespace 記帳系統.Presenters
                 .GetSeries()
                 .Build(); // Build() 現在返回 Chart
 
-         
-
             // 將生成的 Chart 傳遞給視圖
             analysisView.DisplayChart(chart);
         }
